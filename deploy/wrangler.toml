@@ -1,0 +1,15 @@
+name = "lecteur-ps2"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Fichiers statiques (le HTML, Play.js, Play.wasm, coi-sw.js…) servis depuis ./public.
+# run_worker_first = true  → le Worker s'exécute AUSSI pour les assets, donc il peut
+# ajouter COOP/COEP/CORP + le bon MIME wasm sur CHAQUE réponse (sinon les assets sont
+# servis directement, sans en-têtes).
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# (Anciennes versions de wrangler : remplacer la ligne ci-dessus par
+#  experimental_serve_directly = false )

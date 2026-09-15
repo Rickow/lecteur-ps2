@@ -1,0 +1,10 @@
+# build artifacts / toolchain (not part of the repo)
+build-src/
+*.official.js
+*.official.wasm
+
+# OS / editor
+.DS_Store
+*.swp
+Zone.Identifier
+*:Zone.Identifier

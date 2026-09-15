@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lecteur PS2">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<title>Lecteur PS2</title>
+<style>
+:root{--ink:#e8e4d8;--dim:#8a8578;--glow:#7f6bd8;--bg:#050506}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+#outputCanvas{display:block;background:#000;max-width:100%;max-height:100%}
+#loader{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;background:radial-gradient(130% 100% at 50% 28%,#14121e,#0a0910 55%,#050506);text-align:center;padding:1.4rem}
+#loader.hidden{display:none}
+.crest{font-size:.66rem;letter-spacing:.36em;color:var(--dim);text-transform:uppercase}
+.title{font-family:Georgia,serif;font-weight:600;font-size:clamp(2rem,7.5vw,3.4rem);color:#f1ede1;text-shadow:0 0 30px rgba(127,107,216,.25)}
+.sub{font-size:.72rem;letter-spacing:.3em;color:var(--glow);text-transform:uppercase;opacity:.85}
+button.big{font:inherit;font-size:1rem;font-weight:600;padding:.9rem 1.9rem;border-radius:12px;cursor:pointer;border:1px solid rgba(127,107,216,.5);color:#f1ede1;background:linear-gradient(180deg,#6f5bd0,#4f3fa8);box-shadow:0 8px 26px rgba(127,107,216,.25)}
+button.big:active{transform:scale(.97)}
+button.big[disabled]{opacity:.5}
+.warn{font-size:.66rem;color:var(--glow);line-height:1.65;max-width:min(480px,90vw)}
+.hint{font-size:.6rem;color:#6a6a6a;line-height:1.7;max-width:min(480px,90vw)}
+#iso-note{font-size:.64rem;color:#e0715f;display:none;line-height:1.6;max-width:min(480px,90vw)}
+input[type=file]{display:none}
+#fps{position:fixed;left:6px;top:42px;z-index:18;font-size:.62rem;color:#8f8;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:5px;display:none}
+#fps.show{display:block}
+
+/* ---- menu burger ---- */
+#burger{position:fixed;left:6px;top:6px;z-index:33;font-size:1rem;line-height:1;padding:6px 10px;border-radius:10px;border:1px solid rgba(200,190,255,.3);background:rgba(0,0,0,.55);color:#cbbcff;cursor:pointer}
+#menu{position:fixed;inset:0;z-index:60;display:none;background:rgba(4,4,7,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#menu.show{display:block}
+#menu .panel{position:absolute;left:0;top:0;bottom:0;width:min(88vw,370px);overflow:auto;background:#0d0b14;border-right:1px solid rgba(200,190,255,.2);padding:1rem 1rem 3rem;box-shadow:0 0 40px rgba(0,0,0,.6);-webkit-overflow-scrolling:touch}
+#menu .close{position:absolute;right:.7rem;top:.7rem;font:inherit;font-size:.9rem;background:transparent;border:0;color:#9a93b8;cursor:pointer}
+#menu h1{font-family:Georgia,serif;font-size:1.3rem;color:#f1ede1;margin:.1rem 0 .1rem}
+#menu .lead{font-size:.62rem;color:#7d7794;margin-bottom:.4rem}
+#menu h2{font:600 .74rem/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#b7a9ff;margin:1.25rem 0 .5rem;border-top:1px solid rgba(200,190,255,.12);padding-top:.9rem}
+#menu .row{display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:.35rem 0;font-size:.75rem;color:#ddd8ec}
+#menu .btns{display:flex;gap:.4rem;flex-wrap:wrap}
+#menu button.act,#menu label.act{display:inline-block;font:inherit;font-size:.7rem;line-height:1;padding:.42rem .7rem;border-radius:8px;border:1px solid rgba(200,190,255,.28);background:#1a1726;color:#e6e0f6;cursor:pointer}
+#menu button.act:active,#menu label.act:active{transform:scale(.97)}
+#menu button.act:disabled{opacity:.4}
+#menu button.warn{border-color:rgba(224,113,95,.5);color:#f0a99b}
+#menu .seg{display:flex;border:1px solid rgba(200,190,255,.28);border-radius:8px;overflow:hidden}
+#menu .seg button{font:inherit;font-size:.68rem;padding:.4rem .6rem;border:0;background:#141220;color:#cfc9e6;cursor:pointer}
+#menu .seg button.on{background:#5a49b0;color:#fff}
+#menu .slot{border:1px solid rgba(200,190,255,.16);border-radius:10px;padding:.5rem .55rem;margin:.45rem 0}
+#menu .slot .t{font-size:.64rem;color:#9a93b8;margin-bottom:.4rem}
+#menu .note{font-size:.62rem;color:#807a97;line-height:1.5;margin-top:.35rem}
+#menu .filebtn{display:inline-block}
+#log{position:fixed;right:4px;top:4px;z-index:25;background:rgba(0,0,0,.82);color:#8f8;font-size:.56rem;padding:4px 6px;border-radius:5px;max-height:44vh;max-width:92vw;overflow:auto;display:none;pointer-events:none;line-height:1.45}
+#log.show{display:block}
+#journal-fab{position:fixed;left:6px;bottom:6px;z-index:30;font:inherit;font-size:.62rem;padding:4px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.5);color:#9aa;cursor:pointer;opacity:.55}
+#journal-fab.on{opacity:1;color:#b7a9ff;border-color:rgba(127,107,216,.6)}
+#err{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(30,10,10,.95);color:#e0a0a0;font-size:.66rem;padding:.5rem .8rem;display:none;white-space:pre-wrap;max-height:36vh;overflow:auto}
+
+/* ---- manette tactile ---- */
+#pad{position:fixed;inset:0;z-index:15;display:none;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#pad.show{display:block}
+#pad .ctl{position:absolute;pointer-events:auto;-webkit-tap-highlight-color:transparent;touch-action:none}
+#pad .btn{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(200,190,255,.22);background:rgba(22,20,32,.44);color:#e6e0f6;font:600 4.4vw/1 ui-monospace,Menlo,monospace;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);transition:background .05s,transform .05s}
+#pad .btn.on{background:rgba(127,107,216,.72);border-color:rgba(190,172,255,.85);transform:scale(.94)}
+/* épaules */
+#pad #shl{left:4vw;bottom:58vw;display:flex;gap:2.4vw}
+#pad #shr{right:4vw;bottom:58vw;display:flex;gap:2.4vw}
+#pad .sh{width:16vw;height:9.5vw;border-radius:12px;font-size:3.4vw}
+/* d-pad / stick gauche */
+#pad #dz{position:absolute;left:5vw;bottom:15vw;width:38vw;height:38vw;border-radius:50%;background:rgba(18,16,28,.34);border:1px solid rgba(200,190,255,.16);pointer-events:auto;touch-action:none}
+#pad #dz.stick{border-color:rgba(120,220,180,.4)}
+#pad #dz .arw{position:absolute;color:#9a93b8;font-size:4vw;pointer-events:none}
+#pad #dz .arw.aU{left:50%;top:5%;transform:translateX(-50%)} #pad #dz .arw.aD{left:50%;bottom:5%;transform:translateX(-50%)}
+#pad #dz .arw.aL{left:5%;top:50%;transform:translateY(-50%)} #pad #dz .arw.aR{right:5%;top:50%;transform:translateY(-50%)}
+#pad #dz .arw.on{color:#c9bcff}
+#pad #dz .nub{position:absolute;left:50%;top:50%;width:15vw;height:15vw;margin:-7.5vw 0 0 -7.5vw;border-radius:50%;background:rgba(127,107,216,.5);border:1px solid rgba(200,190,255,.6);pointer-events:none;transition:transform .04s}
+#pad #dz.stick .nub{background:rgba(80,200,150,.5);border-color:rgba(150,240,200,.7)}
+/* boutons de face (losange) */
+#pad #face{right:4vw;bottom:15vw;width:40vw;height:40vw}
+#pad #face .btn{position:absolute;width:14vw;height:14vw;font-size:6vw;font-weight:700}
+#pad #face .fT{left:50%;top:0;margin-left:-7vw;color:#8fe6b0}       /* △ triangle */
+#pad #face .fL{left:0;top:50%;margin-top:-7vw;color:#f2a6d6}         /* □ carré */
+#pad #face .fR{right:0;top:50%;margin-top:-7vw;color:#f28a8a}        /* ○ rond */
+#pad #face .fB{left:50%;bottom:0;margin-left:-7vw;color:#8ab6f2}     /* ✕ croix */
+/* système */
+#pad #sys{left:50%;bottom:4.5vw;margin-left:-31vw;width:62vw;display:flex;gap:2.4vw;justify-content:center;align-items:center}
+#pad #sys .btn{height:7.5vw;padding:0 3vw;border-radius:20px;font-size:3vw;font-weight:600}
+#pad #sys .sm{padding:0 2.4vw}
+/* config */
+#pad #cfg{left:50%;top:2.5vw;margin-left:-24vw;width:48vw;display:flex;gap:2.4vw;justify-content:center}
+#pad #cfg .btn{height:7vw;padding:0 2.6vw;border-radius:16px;font-size:2.9vw;background:rgba(22,20,32,.5)}
+#pad-fab{position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:30;font:inherit;font-size:.66rem;padding:4px 10px;border-radius:10px;border:1px solid rgba(200,190,255,.28);background:rgba(0,0,0,.5);color:#b7a9ff;cursor:pointer;display:none}
+#pad-fab.show{display:block}
+@media(min-aspect-ratio:1/1){ /* paysage : rapprocher des bords, réduire */
+  #pad #dz{width:26vh;height:26vh;left:3vw;bottom:8vh} #pad #face{width:28vh;height:28vh;right:3vw;bottom:8vh}
+  #pad #shl{bottom:36vh} #pad #shr{bottom:36vh}
+}
+</style></head><body>
+<div id="stage"><canvas id="outputCanvas" width="640" height="480"></canvas></div>
+<div id="fps"></div>
+
+<!-- manette tactile (révélée au boot) -->
+<div id="pad">
+  <div id="cfg" class="ctl">
+    <div class="btn" id="mode-btn">🎮 D-pad</div>
+    <div class="btn" id="hide-btn">✕ masquer</div>
+  </div>
+  <div id="shl" class="ctl"><div class="btn sh" data-code="Key2">L2</div><div class="btn sh" data-code="Key1">L1</div></div>
+  <div id="shr" class="ctl"><div class="btn sh" data-code="Key8">R1</div><div class="btn sh" data-code="Key9">R2</div></div>
+  <div id="dz">
+    <span class="arw aU">▲</span><span class="arw aD">▼</span><span class="arw aL">◀</span><span class="arw aR">▶</span>
+    <div class="nub"></div>
+  </div>
+  <div id="face" class="ctl">
+    <div class="btn fT" data-code="KeyS">△</div>
+    <div class="btn fL" data-code="KeyA">□</div>
+    <div class="btn fR" data-code="KeyX">○</div>
+    <div class="btn fB" data-code="KeyZ">✕</div>
+  </div>
+  <div id="sys" class="ctl">
+    <div class="btn sm" data-code="Key3">L3</div>
+    <div class="btn" data-code="Backspace">SELECT</div>
+    <div class="btn" data-code="Enter">START</div>
+    <div class="btn sm" data-code="Key0">R3</div>
+  </div>
+</div>
+<button id="pad-fab" title="Manette">🎮</button>
+<div id="loader">
+  <div class="crest">Émulateur · PlayStation 2 · Play!</div>
+  <div class="title">Lecteur PS2</div>
+  <div class="sub">play! · web (proto)</div>
+  <button class="big" id="pick" disabled>Initialisation…</button>
+  <div id="iso-note">⚠ Contexte non isolé (COOP/COEP absents) : les threads ne peuvent pas démarrer. Il faut que le <b>serveur</b> envoie <b>COOP/COEP + CORP</b> (voir <code>_headers</code> / <code>cloudflare-worker.js</code>). Le service worker seul ne suffit pas en mode <b>PWA installée</b>. Impossible en <b>file://</b>.</div>
+  <div class="warn">Prototype : on emballe le build web officiel de <b>Play!</b> (BIOS HLE intégré, aucun BIOS à fournir). Formats : <b>.iso .cso .isz .chd .elf</b>. Après chargement, tape <b>Play</b> (geste requis par iOS pour le son).</div>
+  <div class="hint">⚠ Gros disque = mémoire : Safari plafonne ~1–1,5 Go/onglet. La lecture en flux (pas tout en RAM) viendra ; pour l'instant, teste un petit disque / .elf.</div>
+</div>
+<input type="file" id="file-disc" accept=".iso,.cso,.isz,.chd,.elf,.bin">
+<button id="journal-fab" title="Journal">📋 journal</button>
+<div id="log"></div>
+<div id="err"></div>
+
+<!-- menu burger -->
+<button id="burger" title="Menu">☰</button>
+<div id="menu"><div class="panel">
+  <button class="close" id="menu-close" title="Fermer">✕</button>
+  <h1>Lecteur PS2</h1>
+  <div class="lead" id="menu-game">Aucun jeu chargé</div>
+
+  <h2>Sauvegardes rapides</h2>
+  <div id="slots"></div>
+  <input type="file" id="state-import" accept=".state,.bin" hidden>
+
+  <h2>Carte mémoire</h2>
+  <div class="btns">
+    <button class="act" id="mc-export">Exporter (.tar)</button>
+    <label class="filebtn act" for="mc-import">Importer</label>
+    <input type="file" id="mc-import" accept=".tar" hidden>
+  </div>
+  <div class="note">Sauvegarde/restaure la carte mémoire de cette appli. Après un import, relance le jeu. Expérimental (format interne à Play!).</div>
+
+  <h2>Réglages — au démarrage</h2>
+  <div class="row"><span>Résolution interne</span>
+    <div class="seg" id="seg-res"><button data-v="1">1× natif</button><button data-v="2">2× net</button></div></div>
+  <div class="row"><span>Limiteur 60 fps</span>
+    <div class="seg" id="seg-lim"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+  <div class="note">2× = plus net mais plus lourd (le natif est le plus léger, pas de sous-natif possible sur ce moteur). Limiteur Off = pas de plafond 60 fps. Appliqué au prochain chargement — <b>recharge la page</b> après changement.</div>
+
+  <h2>Affichage</h2>
+  <div class="btns">
+    <button class="act" id="toggle-pad">Manette on/off</button>
+    <button class="act" id="toggle-log">Journal</button>
+  </div>
+
+  <h2>Maintenance</h2>
+  <div class="btns"><button class="act warn" id="cache-clear">Vider le cache & recharger</button></div>
+  <div class="note" id="ver-note"></div>
+</div></div>
+<script>
+/* ---- couche hors-module : journal, isolation COOP/COEP, déverrouillage audio ---- */
+window.__psx = (function(){
+  "use strict";
+  var errBox=document.getElementById('err'), logBox=document.getElementById('log'), fab=document.getElementById('journal-fab');
+  var lines=[], MAX=400;
+  function write(l){ lines.push(l); if(lines.length>MAX) lines.splice(0,lines.length-MAX); logBox.textContent=lines.join('\n'); logBox.scrollTop=logBox.scrollHeight; }
+  function log(m){ var t=new Date().toLocaleTimeString('fr',{hour12:false}); write(t+' '+m); }
+  function showLog(){ logBox.classList.add('show'); fab.classList.add('on'); }
+  function fail(m){ errBox.style.display='block'; errBox.textContent+=(m+'\n'); showLog(); }
+  window.addEventListener('error',function(e){ fail('Erreur : '+(e.message||e)); });
+  window.addEventListener('unhandledrejection',function(e){ var r=e.reason,s=String(r&&(r.message||r)||e);
+    if(/wake.?lock|permissions policy/i.test(s))return; if((r&&r.name==='NotAllowedError')||/Permission was denied/i.test(s))return; fail('Rejet : '+s); });
+  fab.addEventListener('click',function(){ logBox.classList.toggle('show'); fab.classList.toggle('on',logBox.classList.contains('show')); });
+
+  // déverrouillage audio (iOS) : resume des AudioContext au 1er geste
+  (function(){var Orig=window.AudioContext||window.webkitAudioContext;if(!Orig)return;var live=[];
+    function patch(C){if(!C)return C;function P(a){var c=arguments.length?new C(a):new C();live.push(c);return c;}P.prototype=C.prototype;return P;}
+    try{if(window.AudioContext)window.AudioContext=patch(window.AudioContext);}catch(e){}
+    try{if(window.webkitAudioContext)window.webkitAudioContext=patch(window.webkitAudioContext);}catch(e){}
+    function resumeAll(){live.forEach(function(c){try{if(c.state!=='running'&&c.resume)c.resume();}catch(e){}});}
+    ['touchend','pointerup','click'].forEach(function(ev){document.addEventListener(ev,resumeAll,{passive:true});});})();
+
+  // ?reset : purge des service workers + caches (dépannage)
+  if(location.search.indexOf('reset')>=0 && 'serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});
+    if(window.caches) caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});
+  }
+  // Isolation. Si le SERVEUR fournit déjà COOP/COEP (crossOriginIsolated=true, cas Cloudflare
+  // Pages + _headers), le SW de secours est inutile et source de conflits → on le retire.
+  // Sinon seulement, on le pose en secours (+ reload une fois).
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    if(window.crossOriginIsolated){
+      navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){
+        var u=(r.active&&r.active.scriptURL)||''; if(u.indexOf('coi-sw')>=0) r.unregister();
+      });}).catch(function(){});
+    } else {
+      navigator.serviceWorker.register('coi-sw.js').catch(function(){});
+      if(navigator.serviceWorker.controller){ if(location.hash!=='#coi'){location.hash='#coi';location.reload();} }
+      else { navigator.serviceWorker.ready.then(function(){ if(!window.crossOriginIsolated&&location.hash!=='#coi'){location.hash='#coi';location.reload();} }); }
+    }
+  }
+  return { log:log, showLog:showLog, fail:fail, isolated:function(){ return (typeof window.crossOriginIsolated==='undefined')?(typeof SharedArrayBuffer==='function'):window.crossOriginIsolated; } };
+})();
+</script>
+<script>
+/* ---- manette tactile + pont Gamepad → clavier (Play! n'écoute QUE le clavier sur #outputCanvas) ---- */
+window.__pad = (function(){
+  "use strict";
+  var canvas = document.getElementById('outputCanvas');
+  var padEl  = document.getElementById('pad');
+  var fab    = document.getElementById('pad-fab');
+  // comptage de refs : un même code peut être pressé par le tactile ET la manette
+  var counts = Object.create(null);
+  function kev(type,code){ try{ canvas.dispatchEvent(new KeyboardEvent(type,{code:code,key:code,bubbles:true,cancelable:true})); }catch(e){} }
+  function press(code){ if(!code)return; var n=counts[code]||0; counts[code]=n+1; if(n===0) kev('keydown',code); }
+  function release(code){ if(!code)return; var n=counts[code]||0; if(n<=0)return; if(n===1){ delete counts[code]; kev('keyup',code); } else counts[code]=n-1; }
+
+  /* --- boutons simples (multipoint) --- */
+  function bindBtn(el){
+    var code = el.getAttribute('data-code');
+    el.addEventListener('pointerdown', function(e){ e.preventDefault(); if(el._on)return; el._on=true; el.classList.add('on'); try{el.setPointerCapture(e.pointerId);}catch(_){}; press(code); }, {passive:false});
+    function rel(e){ if(!el._on)return; el._on=false; el.classList.remove('on'); release(code); }
+    el.addEventListener('pointerup', rel); el.addEventListener('pointercancel', rel); el.addEventListener('lostpointercapture', rel);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#pad .btn[data-code]'), bindBtn);
+
+  /* --- zone gauche : d-pad OU stick analogique gauche --- */
+  var DZ = document.getElementById('dz');
+  var nub = DZ.querySelector('.nub');
+  var arw = { up:DZ.querySelector('.aU'), down:DZ.querySelector('.aD'), left:DZ.querySelector('.aL'), right:DZ.querySelector('.aR') };
+  var CODES = {
+    dpad:  { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight' },
+    stick: { up:'KeyT',    down:'KeyG',      left:'KeyF',      right:'KeyH' }
+  };
+  var mode = 'dpad', active = {}, pid = null;
+  function codes(){ return CODES[mode]; }
+  function setDir(d,on){
+    if(on===!!active[d]) return;
+    if(on){ active[d]=1; press(codes()[d]); } else { delete active[d]; release(codes()[d]); }
+    if(arw[d]) arw[d].classList.toggle('on', on);
+  }
+  function clearDirs(){ ['up','down','left','right'].forEach(function(d){ setDir(d,false); }); nub.style.transform='translate(0,0)'; }
+  function fromPoint(clientX, clientY){
+    var r = DZ.getBoundingClientRect();
+    var cx = r.left + r.width/2, cy = r.top + r.height/2;
+    var dx = clientX - cx, dy = clientY - cy;
+    var R = r.width/2, dead = R*0.30;
+    setDir('left',  dx < -dead); setDir('right', dx > dead);
+    setDir('up',    dy < -dead); setDir('down',  dy > dead);
+    // nub : borné au rayon
+    var m = Math.hypot(dx,dy), k = m>R ? R/m : 1;
+    nub.style.transform = 'translate(' + (dx*k*0.55).toFixed(1) + 'px,' + (dy*k*0.55).toFixed(1) + 'px)';
+  }
+  DZ.addEventListener('pointerdown', function(e){ e.preventDefault(); if(pid!==null)return; pid=e.pointerId; try{DZ.setPointerCapture(pid);}catch(_){}; fromPoint(e.clientX,e.clientY); }, {passive:false});
+  DZ.addEventListener('pointermove', function(e){ if(e.pointerId!==pid)return; e.preventDefault(); fromPoint(e.clientX,e.clientY); }, {passive:false});
+  function dzEnd(e){ if(e.pointerId!==pid)return; pid=null; clearDirs(); }
+  DZ.addEventListener('pointerup', dzEnd); DZ.addEventListener('pointercancel', dzEnd); DZ.addEventListener('lostpointercapture', dzEnd);
+
+  /* --- config : bascule d-pad/stick, masquer --- */
+  var modeBtn = document.getElementById('mode-btn');
+  modeBtn.addEventListener('click', function(){
+    clearDirs(); mode = (mode==='dpad') ? 'stick' : 'dpad';
+    DZ.classList.toggle('stick', mode==='stick');
+    modeBtn.textContent = (mode==='dpad') ? '🎮 D-pad' : '🕹 Stick G';
+  });
+  document.getElementById('hide-btn').addEventListener('click', function(){ padEl.classList.remove('show'); });
+  fab.addEventListener('click', function(){ padEl.classList.toggle('show'); });
+
+  /* --- pont Gamepad API → clavier (manette Bluetooth/USB) --- */
+  var GP_BTN = { 0:'KeyZ',1:'KeyX',2:'KeyA',3:'KeyS', 4:'Key1',5:'Key8',6:'Key2',7:'Key9',
+                 8:'Backspace',9:'Enter', 10:'Key3',11:'Key0', 12:'ArrowUp',13:'ArrowDown',14:'ArrowLeft',15:'ArrowRight' };
+  var GP_AXIS = [ {n:'KeyF',p:'KeyH'}, {n:'KeyT',p:'KeyG'}, {n:'KeyJ',p:'KeyL'}, {n:'KeyI',p:'KeyK'} ]; // LX,LY,RX,RY
+  var gpPrev = {}; var gpOn = false;
+  function gpTick(){
+    var pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for(var i=0;i<pads.length;i++){ var g=pads[i]; if(!g||!g.connected) continue;
+      for(var b in GP_BTN){ var pressed = g.buttons[b] && g.buttons[b].pressed; var key='b'+i+'_'+b;
+        if(pressed && !gpPrev[key]){ gpPrev[key]=1; press(GP_BTN[b]); } else if(!pressed && gpPrev[key]){ gpPrev[key]=0; release(GP_BTN[b]); } }
+      for(var a=0;a<GP_AXIS.length && a<g.axes.length;a++){ var v=g.axes[a], m=GP_AXIS[a], dz=0.45;
+        var kn='a'+i+'_'+a+'n', kp='a'+i+'_'+a+'p';
+        var neg=v<-dz, pos=v>dz;
+        if(neg&&!gpPrev[kn]){gpPrev[kn]=1;press(m.n);} else if(!neg&&gpPrev[kn]){gpPrev[kn]=0;release(m.n);}
+        if(pos&&!gpPrev[kp]){gpPrev[kp]=1;press(m.p);} else if(!pos&&gpPrev[kp]){gpPrev[kp]=0;release(m.p);}
+      }
+    }
+    if(gpOn) requestAnimationFrame(gpTick);
+  }
+  window.addEventListener('gamepadconnected', function(e){ __psx.log('🎮 Manette détectée : '+(e.gamepad&&e.gamepad.id||'?')); if(!gpOn){ gpOn=true; requestAnimationFrame(gpTick); } });
+
+  return {
+    show: function(){ padEl.classList.add('show'); fab.classList.add('show'); if(!gpOn && navigator.getGamepads){ gpOn=true; requestAnimationFrame(gpTick); } },
+    hide: function(){ padEl.classList.remove('show'); }
+  };
+})();
+</script>
+<script>
+/* ---- menu : save states (IndexedDB + export/import), carte mémoire, réglages, cache ---- */
+window.__menu = (function(){
+  "use strict";
+  const U = window.__psx;
+  const menu = document.getElementById('menu');
+  const gameEl = document.getElementById('menu-game');
+  const slotsEl = document.getElementById('slots');
+  function toast(m){ U.log('▸ ' + m); }
+
+  /* --- IndexedDB clé/valeur --- */
+  function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open('ps2store',1);
+    r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+  async function idbPut(k,v){ const db=await idb(); return new Promise((res,rej)=>{ const t=db.transaction('kv','readwrite'); t.objectStore('kv').put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+  async function idbGet(k){ const db=await idb(); return new Promise((res,rej)=>{ const t=db.transaction('kv','readonly'); const q=t.objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+
+  function dl(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(u); a.remove();},1500); }
+
+  /* --- Save states (3 slots) --- */
+  function slotHtml(n){ return '<div class="slot"><div class="t" id="slot-t-'+n+'">Slot '+n+' — vide</div><div class="btns">'
+    + '<button class="act" data-a="save" data-n="'+n+'">Sauver</button>'
+    + '<button class="act" data-a="load" data-n="'+n+'">Charger</button>'
+    + '<button class="act" data-a="export" data-n="'+n+'">Exporter</button>'
+    + '<button class="act" data-a="import" data-n="'+n+'">Importer</button>'
+    + '</div></div>'; }
+  slotsEl.innerHTML = [1,2,3].map(slotHtml).join('');
+
+  async function refreshSlot(n){ const rec = await idbGet('state.slot'+n); const el=document.getElementById('slot-t-'+n);
+    if(rec){ const d=new Date(rec.ts); el.textContent = 'Slot '+n+' — '+(rec.name||'?')+' · '+d.toLocaleString('fr',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+Math.round(rec.data.length/1048576)+' Mo'; }
+    else el.textContent = 'Slot '+n+' — vide'; }
+  function refreshAllSlots(){ [1,2,3].forEach(refreshSlot); }
+
+  async function saveSlot(n){ const M=window.__PS2;
+    if(!M || !window.__PS2_game){ toast('Charge un jeu d’abord'); return; }
+    const path='/state_'+n+'.bin'; let ok=false;
+    try{ ok = M.saveState(path); }catch(e){ ok=false; }
+    if(!ok){ U.fail('Sauvegarde état échouée (slot '+n+')'); return; }
+    let data; try{ data = new Uint8Array(M.FS.readFile(path)); }catch(e){ U.fail('Lecture état échouée'); return; }
+    try{ M.FS.unlink(path); }catch(_){}
+    await idbPut('state.slot'+n, {ts:Date.now(), name:window.__PS2_game||'', data});
+    refreshSlot(n); toast('Sauvé slot '+n+' ('+Math.round(data.length/1048576)+' Mo)'); }
+
+  async function loadSlot(n){ const M=window.__PS2;
+    if(!M || !window.__PS2_game){ toast('Charge d’abord le même jeu'); return; }
+    const rec = await idbGet('state.slot'+n); if(!rec){ toast('Slot '+n+' vide'); return; }
+    const path='/state_'+n+'.bin'; M.FS.writeFile(path, rec.data); let ok=false;
+    try{ ok = M.loadState(path); }catch(e){ ok=false; }
+    try{ M.FS.unlink(path); }catch(_){}
+    if(ok){ toast('Chargé slot '+n); menu.classList.remove('show'); } else U.fail('Chargement état échoué'); }
+
+  async function exportSlot(n){ const rec = await idbGet('state.slot'+n); if(!rec){ toast('Slot '+n+' vide'); return; }
+    dl(new Blob([rec.data]), (rec.name||'ps2').replace(/\.[^.]*$/,'')+'.slot'+n+'.state'); toast('Export slot '+n); }
+
+  let importTarget = 0;
+  const stateImport = document.getElementById('state-import');
+  stateImport.addEventListener('change', async (e)=>{ const f=e.target.files[0]; e.target.value=''; if(!f||!importTarget) return;
+    const data = new Uint8Array(await f.arrayBuffer());
+    await idbPut('state.slot'+importTarget, {ts:Date.now(), name:f.name.replace(/\.slot\d+\.state$/,''), data});
+    refreshSlot(importTarget); toast('Importé dans slot '+importTarget); });
+
+  slotsEl.addEventListener('click', (e)=>{ const b=e.target.closest('button'); if(!b) return;
+    const n=parseInt(b.dataset.n,10), a=b.dataset.a;
+    if(a==='save') saveSlot(n); else if(a==='load') loadSlot(n); else if(a==='export') exportSlot(n);
+    else if(a==='import'){ importTarget=n; stateImport.click(); } });
+
+  /* --- Carte mémoire (dossier vfs/mc0 dans MEMFS, localisé par scan) --- */
+  function findDir(name){ const FS=window.__PS2 && window.__PS2.FS; if(!FS) return null; const stack=['/'];
+    while(stack.length){ const p=stack.pop(); let ents; try{ ents=FS.readdir(p); }catch(_){ continue; }
+      for(const e of ents){ if(e==='.'||e==='..') continue; const cp=(p==='/'?'':p)+'/'+e; let st; try{ st=FS.stat(cp); }catch(_){ continue; }
+        if(FS.isDir(st.mode)){ if(e===name) return cp; stack.push(cp); } } }
+    return null; }
+  function walkFiles(FS, dir, baseLen, out){ for(const e of FS.readdir(dir)){ if(e==='.'||e==='..') continue;
+    const p=dir+'/'+e; const st=FS.stat(p); if(FS.isDir(st.mode)) walkFiles(FS,p,baseLen,out);
+    else out.push({name:p.slice(baseLen), data:new Uint8Array(FS.readFile(p))}); } }
+  function mkdirp(FS, path){ const parts=path.split('/'); let cur=''; for(const seg of parts){ if(!seg) continue; cur=cur+'/'+seg; try{ FS.mkdir(cur); }catch(_){} } }
+  const enc=new TextEncoder(), dec=new TextDecoder();
+  function octal(n,len){ return n.toString(8).padStart(len-1,'0')+'\0'; }
+  function makeTar(files){ const chunks=[];
+    for(const f of files){ const h=new Uint8Array(512); h.set(enc.encode(f.name).slice(0,100),0);
+      h.set(enc.encode('0000644\0'),100); h.set(enc.encode('0000000\0'),108); h.set(enc.encode('0000000\0'),116);
+      h.set(enc.encode(octal(f.data.length,12)),124); h.set(enc.encode(octal(Math.floor(Date.now()/1000),12)),136);
+      for(let i=148;i<156;i++) h[i]=32; h[156]=0x30; h.set(enc.encode('ustar\0'),257); h.set(enc.encode('00'),263);
+      let sum=0; for(let i=0;i<512;i++) sum+=h[i]; h.set(enc.encode(octal(sum,7)),148); h[155]=32;
+      chunks.push(h); chunks.push(f.data); const pad=(512-(f.data.length%512))%512; if(pad) chunks.push(new Uint8Array(pad)); }
+    chunks.push(new Uint8Array(1024)); return new Blob(chunks,{type:'application/x-tar'}); }
+  function readTar(buf){ const u=new Uint8Array(buf); const out=[]; let off=0;
+    while(off+512<=u.length){ const name=dec.decode(u.slice(off,off+100)).replace(/\0[\s\S]*$/,''); if(!name) break;
+      const size=parseInt(dec.decode(u.slice(off+124,off+136)).replace(/\0[\s\S]*$/,'').trim(),8)||0;
+      out.push({name, data:u.slice(off+512, off+512+size)}); off += 512 + Math.ceil(size/512)*512; }
+    return out; }
+
+  document.getElementById('mc-export').addEventListener('click', ()=>{ const M=window.__PS2; if(!M){ toast('Runtime pas prêt'); return; }
+    const dir=findDir('mc0'); if(!dir){ toast('Carte mémoire introuvable (lance un jeu d’abord)'); return; }
+    const out=[]; try{ walkFiles(M.FS, dir, dir.length+1, out); }catch(e){ U.fail('Lecture carte échouée : '+e); return; }
+    if(!out.length){ toast('Carte mémoire vide'); return; }
+    dl(makeTar(out), 'carte-memoire-ps2.tar'); toast('Export carte mémoire ('+out.length+' fichiers)'); });
+
+  document.getElementById('mc-import').addEventListener('change', async (e)=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+    const M=window.__PS2; if(!M){ toast('Runtime pas prêt'); return; }
+    const dir=findDir('mc0'); if(!dir){ toast('Lance un jeu d’abord (carte mémoire absente)'); return; }
+    const entries=readTar(await f.arrayBuffer()); let k=0;
+    for(const it of entries){ const full=dir+'/'+it.name; const parent=full.slice(0,full.lastIndexOf('/'));
+      try{ mkdirp(M.FS, parent); M.FS.writeFile(full, it.data); k++; }catch(err){ U.log('mc import: '+it.name+' → '+err); } }
+    toast('Importé '+k+' fichiers dans la carte mémoire — relance le jeu.'); });
+
+  /* --- Réglages (segments) --- */
+  function initSeg(id, key, def){ const seg=document.getElementById(id); const cur=localStorage.getItem(key)||def;
+    seg.querySelectorAll('button').forEach(b=>{ b.classList.toggle('on', b.dataset.v===cur);
+      b.addEventListener('click', ()=>{ localStorage.setItem(key,b.dataset.v);
+        seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); toast('Réglage enregistré — recharge la page pour appliquer.'); }); }); }
+  initSeg('seg-res','ps2.resFactor','1');
+  initSeg('seg-lim','ps2.limit60','1');
+
+  /* --- Affichage / maintenance --- */
+  document.getElementById('toggle-pad').addEventListener('click', ()=>{ document.getElementById('pad').classList.toggle('show'); });
+  document.getElementById('toggle-log').addEventListener('click', ()=>{ U.showLog(); });
+  document.getElementById('cache-clear').addEventListener('click', async ()=>{
+    toast('Vidage du cache…');
+    try{ if('serviceWorker' in navigator){ const rs=await navigator.serviceWorker.getRegistrations(); for(const r of rs) await r.unregister(); } }catch(_){}
+    try{ if(window.caches){ const ks=await caches.keys(); for(const k of ks) await caches.delete(k); } }catch(_){}
+    location.reload(); });
+
+  /* --- Ouverture / fermeture --- */
+  document.getElementById('burger').addEventListener('click', ()=>{ menu.classList.add('show'); refreshAllSlots(); });
+  document.getElementById('menu-close').addEventListener('click', ()=>menu.classList.remove('show'));
+  menu.addEventListener('click', (e)=>{ if(e.target===menu) menu.classList.remove('show'); });
+  document.getElementById('ver-note').textContent = 'Play! (BSD) · build instrumenté · ' + location.hostname;
+  refreshAllSlots();
+
+  return { onBoot: function(name){ gameEl.textContent = name || 'Jeu chargé'; } };
+})();
+</script>
+<script type="module">
+/* ---- module : instanciation de Play!, initVm, boot d'un disque ---- */
+import Play from './Play.js';
+const U = window.__psx;
+const pick = document.getElementById('pick');
+const canvas = document.getElementById('outputCanvas');
+const loader = document.getElementById('loader');
+const fpsEl = document.getElementById('fps');
+
+// Lecteur de disque EN FLUX : le wasm lit le disque par tranches via blob.slice()
+// (pas de copie complète en RAM). Réplique le "discImageDevice" du build officiel.
+class DiscImageDevice {
+  constructor(module){ this.module = module; this.file = null; this.doneFlag = false; }
+  read(dest, offset, length){
+    this.doneFlag = false;
+    this.file.slice(offset, offset + length).arrayBuffer().then((b) => {
+      this.module.HEAPU8.set(new Uint8Array(b), dest);
+      this.doneFlag = true;
+    });
+  }
+  getFileSize(){ if(!this.file) throw new Error('No file set.'); return this.file.size; }
+  isDone(){ return this.doneFlag; }
+  setFile(f){ this.file = f; }
+}
+
+if(!U.isolated()){
+  document.getElementById('iso-note').style.display = 'block';
+  pick.textContent = 'Contexte non isolé';
+  U.log('Non isolé : SharedArrayBuffer indisponible, threads impossibles. La page doit être servie (COOP/COEP).');
+} else {
+  U.log('Contexte isolé OK — instanciation de Play!…');
+  let Module = null, booted = false;
+
+  try {
+    const _base = import.meta.url;   // URL de cette page (module inline)
+    // ⚠ NE PAS passer "canvas" : Play! crée son contexte WebGL en cherchant "#outputCanvas"
+    // par sélecteur. Fournir Module.canvas casse le contexte GL proxifié entre threads
+    // (erreur clearColor/clearDepth sur GLctx undefined). _scriptName étant indéfini en ESM,
+    // on fournit mainScriptUrlOrBlob (worker pthread) et locateFile (wasm) explicitement.
+    Module = await Play({
+      mainScriptUrlOrBlob: new URL('./Play.js', _base).href,
+      locateFile: (p) => new URL('./' + p, _base).href,
+      print: (m) => U.log(String(m)),
+      printErr: (m) => { const s=String(m); U.log(s); if(/error|assert|abort|fail/i.test(s)) U.showLog(); },
+    });
+    window.__PS2 = Module;
+    U.log('Runtime prêt — initVm()…');
+    try{ Module.FS.mkdir('/work'); }catch(_){}
+    Module.discImageDevice = new DiscImageDevice(Module);   // requis AVANT initVm/boot
+    // Réglages de démarrage (persistés dans localStorage) — DOIVENT être posés avant initVm.
+    try {
+      const rf = parseInt(localStorage.getItem('ps2.resFactor') || '1', 10);
+      Module.setResolutionFactor && Module.setResolutionFactor(rf >= 2 ? 2 : 1);
+      const lim = localStorage.getItem('ps2.limit60');
+      Module.setFrameLimiter && Module.setFrameLimiter(lim !== '0');
+      U.log('Réglages : résolution ' + (rf>=2?'2×':'1×') + ', limiteur 60fps ' + (lim!=='0'?'on':'off'));
+    } catch(_){}
+    Module.ccall('initVm', '', [], []);        // crée VM + contexte WebGL2 + pad + son
+    U.log('VM initialisée. Charge un jeu.');
+    pick.textContent = 'Charger un jeu';
+    pick.disabled = false;
+  } catch (e) {
+    U.fail('Échec init Play! : ' + (e && (e.message || e)));
+  }
+
+  pick.addEventListener('click', () => document.getElementById('file-disc').click());
+  document.getElementById('file-disc').addEventListener('change', async (e) => {
+    const f = e.target.files[0]; e.target.value = ''; if(!f || !Module) return;
+    if(booted){ U.log('Un jeu est déjà lancé — recharge la page pour en changer.'); return; }
+    U.log('Chargement : ' + f.name + ' (' + Math.round(f.size/1048576) + ' Mo)');
+    try {
+      loader.classList.add('hidden');
+      fpsEl.classList.add('show');
+      booted = true;
+      if(/\.elf$/i.test(f.name)){
+        const buf = new Uint8Array(await f.arrayBuffer());
+        try{ Module.FS.unlink(f.name); }catch(_){}
+        Module.FS.writeFile(f.name, buf);
+        U.log('bootElf("' + f.name + '")');
+        Module.bootElf(f.name);
+      } else {
+        // disque : lecture en flux (pas de copie RAM) via le device
+        Module.discImageDevice.setFile(f);
+        U.log('bootDiscImage("' + f.name + '")');
+        Module.bootDiscImage(f.name);
+      }
+      window.__PS2_game = f.name;
+      startFps();
+      try{ window.__pad && window.__pad.show(); }catch(_){}
+      try{ window.__menu && window.__menu.onBoot(f.name); }catch(_){}
+      try{ canvas.focus(); }catch(_){}
+    } catch (err) {
+      U.fail('Boot échoué : ' + (err && (err.message || err)));
+      loader.classList.remove('hidden'); booted = false;
+    }
+  });
+
+  // mesure (§1 de la spec) : FPS + occupation EE (EE+VU) / IOP + draws par frame.
+  // On remet les compteurs à zéro chaque seconde → valeurs "par seconde".
+  // EE ≈ 100% => on est CPU-bound (EE/VU) ; EE bas mais FPS bas => goulot GS/présentation.
+  function startFps(){
+    let lastT = performance.now();
+    try{ Module.clearStats && Module.clearStats(); }catch(_){}
+    setInterval(() => {
+      try {
+        const now = performance.now(), dt = (now - lastT)/1000; lastT = now;
+        const frames = Module.getFrames ? Module.getFrames() : 0;
+        const fps = dt>0 ? frames/dt : 0;
+        const ee  = Module.getEeUsage  ? Module.getEeUsage()  : -1;
+        const iop = Module.getIopUsage ? Module.getIopUsage() : -1;
+        const dc  = Module.getDrawCalls? Module.getDrawCalls(): -1;
+        let s = fps.toFixed(1) + ' fps';
+        if(ee  >= 0) s += ' · EE '  + ee.toFixed(0)  + '%';
+        if(iop >= 0) s += ' · IOP ' + iop.toFixed(0) + '%';
+        if(dc  >= 0) s += ' · ' + (frames>0 ? Math.round(dc/frames) : 0) + ' draws/f';
+        fpsEl.textContent = s;
+        Module.clearStats && Module.clearStats();
+      } catch(_){}
+    }, 1000);
+  }
+}
+</script>
+</body></html>

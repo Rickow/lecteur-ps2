@@ -1,0 +1,12 @@
+# Cloudflare Pages — en-têtes obligatoires pour Play! (build threadé)
+# COOP/COEP => crossOriginIsolated (SharedArrayBuffer/pthreads), y compris en mode PWA.
+# CORP => autorise le worker à charger le wasm/js sous COEP require-corp.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: same-origin
+
+# MIME correct du WebAssembly (sinon "Unexpected response MIME type. Expected 'application/wasm'")
+/*.wasm
+  Content-Type: application/wasm
+  Cross-Origin-Resource-Policy: same-origin
