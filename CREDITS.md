@@ -21,12 +21,26 @@ emulation credit belongs to its authors. Thank you.
 | **[nlohmann/json](https://github.com/nlohmann/json)** | JSON | MIT |
 | **[SQLite](https://sqlite.org/)** | embedded database | Public domain |
 
+## Memory-card engine
+
+| Component | Role | License |
+|---|---|---|
+| **[ps2vmc-tool](https://github.com/bucanero/ps2vmc-tool)** (bucanero; orig. ps3mca-tool by jimmikaelkael) | PS2 memory-card filesystem (superblock, FAT, ECC) — compiled to `ps2mc.wasm` for `.ps2` import/export; source in [`mc-tool/`](mc-tool/) | **GPL-3.0** |
+
 ## Wrapper (this repository)
 
 The single-file interface — on-screen gamepad, Gamepad API bridge, burger menu, save-state
-slots (IndexedDB), memory-card export/import, startup settings, measurement overlay — plus
-`coi-sw.js` (fallback COOP/COEP service worker), `_headers`, `cloudflare-worker.js` and the
-`deploy/` Worker. Original code, released under **MIT** (see [`LICENSE`](LICENSE)).
+slots (IndexedDB), memory-card `.ps2` import/export + auto-persistence, full-backup `.zip`,
+startup settings, measurement overlay — plus `coi-sw.js` (fallback COOP/COEP service worker),
+`_headers`, `cloudflare-worker.js` and the `deploy/` Worker. This original code is **also
+offered by its author under the [MIT License](LICENSE.MIT)** — do what you want with it.
+
+## Licence of this repository
+
+**GPL-3.0** (see [`LICENSE`](LICENSE)). The repository bundles the memory-card engine
+**ps2vmc-tool** (GPL-3.0, shipped as `ps2mc.wasm`), so the combined distribution is GPL-3.0.
+Separately: the emulator **Play!** stays **BSD-2-Clause** ([`PLAY-LICENSE.txt`](PLAY-LICENSE.txt)),
+and our **original wrapper code** is also available under **MIT** ([`LICENSE.MIT`](LICENSE.MIT)).
 
 ## Modifications to Play!
 

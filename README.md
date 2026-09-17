@@ -3,60 +3,57 @@
 # Lecteur PS2
 
 A **PlayStation 2** emulator that runs in the browser, wrapped for the **iPhone**. It
-packages the official web build of **[Play!](https://github.com/jpd002/Play-)** (BSD) with
-a lightweight, touch-first interface and adds the pieces a phone needs: an on-screen
-gamepad, save states, a menu, and startup settings.
+packages the official web build of **[Play!](https://github.com/jpd002/Play-)** (BSD) with a
+touch-first interface: on-screen gamepad, save states, memory-card import/export as real
+`.ps2` images, automatic persistence, and startup settings.
 
-> **Status: prototype.** PS2 in a browser is heavy. Expect "playable, not smooth" on
-> recent iPhones — comparable to PPSSPP-class performance, with occasional glitches.
-> The **HLE BIOS is built in**: no BIOS file to provide.
+> **Status: prototype.** PS2 in a browser is heavy — expect "playable, not smooth" on recent
+> iPhones, with occasional glitches. The **HLE BIOS is built in**: no BIOS file to provide.
 
 ---
 
 ## Features
 
 **Emulation**
-- **[Play!](https://github.com/jpd002/Play-)** official web core (Emscripten, WebGL2, threaded)
-- **HLE BIOS** — nothing copyrighted required
+- **[Play!](https://github.com/jpd002/Play-)** official web core (Emscripten, WebGL2, threaded), **HLE BIOS**
 - Disc formats: **.iso .cso .isz .chd .elf**
-- **Streaming disc reads** — the disc is read on demand from the file (`blob.slice`), never
-  loaded whole into RAM. Suited to 4–8 GB DVDs on a memory-limited device.
+- **Streaming disc reads** (`blob.slice`) — the disc is read on demand, never loaded whole
+  into RAM. Suited to 4–8 GB DVDs on a memory-limited device.
 
 **Controls**
-- Full **on-screen gamepad**: D-pad (with diagonals) or **left analog stick** (toggle),
-  face buttons ▲ ○ ✕ □, L1/L2/L3, R1/R2/R3, START/SELECT — multi-touch.
-- **Gamepad API bridge**: a Bluetooth/USB controller works too (Play! only listens to the
-  keyboard, so the page translates gamepad input into the keys it expects).
+- Full **on-screen gamepad**: D-pad / **left analog stick** (toggle, remembered), face buttons
+  ▲ ○ ✕ □, L1/L2/L3, R1/R2/R3, START/SELECT — multi-touch, laid out for portrait and
+  landscape (safe-area aware).
+- **Gamepad API bridge**: Bluetooth/USB controllers work too (Play! only reads the keyboard,
+  so the page translates the pad into the keys it expects).
 
 **Menu (☰)**
-- **Save states — 3 slots**: save / load / **export** (`.state` file) / **import**.
-  Stored in **IndexedDB**, so they survive a page reload.
-- **Memory card**: export / import as `.tar` (experimental — internal Play! folder format).
-- **Startup settings** (persisted): internal resolution **1× / 2×**, 60 fps limiter on/off.
-- **Clear cache & reload**, gamepad and log toggles.
+- **Save states — 3 slots**: save / load / export (`.state`) / import, kept in IndexedDB.
+- **Memory card**: export / import a **standard `.ps2` image** (PCSX2 / real-PS2 / mymc
+  compatible), plus **automatic persistence** — the card is snapshotted to IndexedDB and
+  restored before a game boots.
+- **Full backup**: one `.zip` with every save state + the memory card, to back up or move to
+  another device.
+- **Startup settings** (persisted): internal resolution 1× / 2×, 60 fps limiter.
+- **Clear cache & reload**.
 
-**Measurement overlay**
-- Live **FPS · EE% · IOP% · draws/frame**. `EE%` is the Emotion Engine (EE + VU) load — if
-  it sits near 100 %, the machine is CPU-bound.
+**Measurement overlay**: live **FPS · EE% · IOP% · draws/frame** (`EE%` ≈ 100 % ⇒ CPU-bound).
 
 ---
 
 ## Run it
 
-This is a **threaded** build, so it needs **cross-origin isolation**
-(`COOP: same-origin` + `COEP: require-corp` + `CORP: same-origin`, and `application/wasm`
-for the `.wasm`). A page served without those headers will show "context not isolated" and
-the threads won't start. **`file://` does not work.**
-
-Two ways to serve it:
+This is a **threaded** build → it needs **cross-origin isolation** (`COOP: same-origin` +
+`COEP: require-corp` + `CORP: same-origin`, and `application/wasm` for `.wasm`). `file://`
+does not work. Serve it either way:
 
 - **Cloudflare Pages** — deploy the repository root; the included [`_headers`](_headers) sets
-  everything. Nothing else needed.
-- **Cloudflare Workers** — use [`deploy/`](deploy/) (a Worker that adds the headers on every
-  response). See [`deploy/README-DEPLOY.md`](deploy/README-DEPLOY.md).
+  everything.
+- **Cloudflare Workers** — use [`deploy/`](deploy/) (a Worker that adds the headers). See
+  [`deploy/README-DEPLOY.md`](deploy/README-DEPLOY.md).
 
-Then open the URL, pick a disc, and tap **Play** (iOS requires a gesture for audio).
-If an old service worker gets in the way, open the page once with `?reset`.
+Open the URL, tap **Démarrer** (the WebGL context is created inside that tap — iOS Safari
+requires a user gesture), then pick a disc.
 
 ---
 
@@ -69,18 +66,21 @@ If an old service worker gets in the way, open the page once with `?reset`.
 
 ## Build / modifications
 
-The `Play.js` / `Play.wasm` here are built from Play! upstream
+`Play.js` / `Play.wasm` are built from Play! upstream
 [`83700b2`](https://github.com/jpd002/Play-/commit/83700b2c31e593bc94e845b4b31b797be84dda59)
-with a small instrumentation/settings patch to the JS frontend
-([`patches/play-ui_js-instrumentation.patch`](patches/play-ui_js-instrumentation.patch)):
-it exposes `saveState` / `loadState`, `setResolutionFactor`, `setFrameLimiter`, and per-frame
-stats (`getEeUsage` / `getIopUsage` / `getDrawCalls`). Toolchain: Emscripten 4.0.1,
-`emcmake cmake --preset wasm-ninja` → `cmake --build --preset wasm-ninja-release`.
+with a small JS-frontend patch ([`patches/`](patches/)) exposing `saveState`/`loadState`,
+`setResolutionFactor`, `setFrameLimiter` and per-frame stats. `ps2mc.js`/`ps2mc.wasm` (the
+memory-card engine) are built from [`mc-tool/`](mc-tool/). Toolchain: Emscripten 4.0.1.
+
+## Licensing
+
+- **The repository as a whole is distributed under [GPL-3.0](LICENSE)**, because it bundles
+  the memory-card engine **[ps2vmc-tool](https://github.com/bucanero/ps2vmc-tool)** (GPL-3.0,
+  shipped as `ps2mc.wasm`).
+- The **PS2 emulator Play!** (`Play.js`, `Play.wasm`) is **BSD-2-Clause** (© Jean-Philip
+  Desjardins) — see [`PLAY-LICENSE.txt`](PLAY-LICENSE.txt).
+- Our **own original wrapper code** (the `lecteur-ps2.html` interface, `coi-sw.js`, deploy
+  config) is **also offered under the MIT License** — see [`LICENSE.MIT`](LICENSE.MIT). Take
+  those files and do what you want with them under MIT.
 
 See [CREDITS.md](CREDITS.md) for the full list of tools and licenses.
-
-## Credits & license
-
-Emulation is **[Play!](https://github.com/jpd002/Play-)** by Jean-Philip Desjardins
-(**BSD-2-Clause**). This wrapper (the `lecteur-ps2.html` UI, `coi-sw.js`, deploy config) is
-released under **MIT** — see [LICENSE](LICENSE). Full attributions in [CREDITS.md](CREDITS.md).

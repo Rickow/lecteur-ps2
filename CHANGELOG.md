@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.3.0 — 2026-09-17
+
+Controls, memory-card `.ps2`, persistence and full backup.
+
+**Memory card**
+- Import / **export as a standard `.ps2` image** (8 MiB, PCSX2 / real-PS2 / mymc compatible),
+  via the **ps2vmc-tool** engine compiled to WebAssembly (`ps2mc.wasm`, source in `mc-tool/`).
+- **Automatic persistence**: the card is snapshotted to IndexedDB (interval + on hide/close)
+  and restored into Play!'s folder before a game boots.
+
+**Saves**
+- **Full backup**: "export everything" / "import everything" as a single `.zip` (all save
+  states + the memory card).
+
+**Controls**
+- Touch pad re-laid-out with `vmin` so it fits portrait **and** landscape; safe-area aware so
+  the burger menu and controls stay reachable under the notch / home indicator.
+- **D-pad ⇄ Analog** toggle for the left cluster, remembered across reloads.
+
+**Fixes**
+- iOS Safari: `initVm` (WebGL2 context creation) is now **deferred to the first tap**, so the
+  context is created inside a user gesture — fixes the `clearColor`/`clearDepth` launch error.
+
+**Licensing**
+- Repository moves to **GPL-3.0** (it now bundles `ps2mc.wasm`, GPL-3.0). Play! stays
+  BSD-2-Clause; our original wrapper code is also offered under MIT (`LICENSE.MIT`).
+
 ## v0.2.0 — 2026-09-15
 
 Feature parity with the other players + an instrumented Play! build.

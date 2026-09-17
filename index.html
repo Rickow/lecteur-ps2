@@ -26,15 +26,15 @@ button.big[disabled]{opacity:.5}
 .hint{font-size:.6rem;color:#6a6a6a;line-height:1.7;max-width:min(480px,90vw)}
 #iso-note{font-size:.64rem;color:#e0715f;display:none;line-height:1.6;max-width:min(480px,90vw)}
 input[type=file]{display:none}
-#fps{position:fixed;left:6px;top:42px;z-index:18;font-size:.62rem;color:#8f8;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:5px;display:none}
+#fps{position:fixed;left:max(6px,env(safe-area-inset-left));top:calc(max(8px,env(safe-area-inset-top)) + 40px);z-index:18;font-size:.62rem;color:#8f8;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:5px;display:none}
 #fps.show{display:block}
 
 /* ---- menu burger ---- */
-#burger{position:fixed;left:6px;top:6px;z-index:33;font-size:1rem;line-height:1;padding:6px 10px;border-radius:10px;border:1px solid rgba(200,190,255,.3);background:rgba(0,0,0,.55);color:#cbbcff;cursor:pointer}
+#burger{position:fixed;left:max(8px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top));z-index:33;font-size:1rem;line-height:1;padding:8px 12px;border-radius:10px;border:1px solid rgba(200,190,255,.3);background:rgba(0,0,0,.55);color:#cbbcff;cursor:pointer}
 #menu{position:fixed;inset:0;z-index:60;display:none;background:rgba(4,4,7,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 #menu.show{display:block}
-#menu .panel{position:absolute;left:0;top:0;bottom:0;width:min(88vw,370px);overflow:auto;background:#0d0b14;border-right:1px solid rgba(200,190,255,.2);padding:1rem 1rem 3rem;box-shadow:0 0 40px rgba(0,0,0,.6);-webkit-overflow-scrolling:touch}
-#menu .close{position:absolute;right:.7rem;top:.7rem;font:inherit;font-size:.9rem;background:transparent;border:0;color:#9a93b8;cursor:pointer}
+#menu .panel{position:absolute;left:0;top:0;bottom:0;width:min(88vw,370px);overflow:auto;background:#0d0b14;border-right:1px solid rgba(200,190,255,.2);padding:calc(1rem + env(safe-area-inset-top)) 1rem calc(3rem + env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left));box-shadow:0 0 40px rgba(0,0,0,.6);-webkit-overflow-scrolling:touch}
+#menu .close{position:absolute;right:.7rem;top:calc(.7rem + env(safe-area-inset-top));font:inherit;font-size:1.1rem;padding:4px 8px;background:transparent;border:0;color:#9a93b8;cursor:pointer}
 #menu h1{font-family:Georgia,serif;font-size:1.3rem;color:#f1ede1;margin:.1rem 0 .1rem}
 #menu .lead{font-size:.62rem;color:#7d7794;margin-bottom:.4rem}
 #menu h2{font:600 .74rem/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#b7a9ff;margin:1.25rem 0 .5rem;border-top:1px solid rgba(200,190,255,.12);padding-top:.9rem}
@@ -51,51 +51,52 @@ input[type=file]{display:none}
 #menu .slot .t{font-size:.64rem;color:#9a93b8;margin-bottom:.4rem}
 #menu .note{font-size:.62rem;color:#807a97;line-height:1.5;margin-top:.35rem}
 #menu .filebtn{display:inline-block}
-#log{position:fixed;right:4px;top:4px;z-index:25;background:rgba(0,0,0,.82);color:#8f8;font-size:.56rem;padding:4px 6px;border-radius:5px;max-height:44vh;max-width:92vw;overflow:auto;display:none;pointer-events:none;line-height:1.45}
+#log{position:fixed;right:max(4px,env(safe-area-inset-right));top:max(6px,env(safe-area-inset-top));z-index:25;background:rgba(0,0,0,.82);color:#8f8;font-size:.56rem;padding:4px 6px;border-radius:5px;max-height:44vh;max-width:92vw;overflow:auto;display:none;pointer-events:none;line-height:1.45}
 #log.show{display:block}
-#journal-fab{position:fixed;left:6px;bottom:6px;z-index:30;font:inherit;font-size:.62rem;padding:4px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.5);color:#9aa;cursor:pointer;opacity:.55}
+#journal-fab{position:fixed;left:max(6px,env(safe-area-inset-left));bottom:max(6px,env(safe-area-inset-bottom));z-index:30;font:inherit;font-size:.62rem;padding:4px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.5);color:#9aa;cursor:pointer;opacity:.55}
 #journal-fab.on{opacity:1;color:#b7a9ff;border-color:rgba(127,107,216,.6)}
 #err{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(30,10,10,.95);color:#e0a0a0;font-size:.66rem;padding:.5rem .8rem;display:none;white-space:pre-wrap;max-height:36vh;overflow:auto}
 
-/* ---- manette tactile ---- */
+/* ---- manette tactile ----
+   Tout est dimensionné en vmin (= le plus petit côté) : les boutons gardent la
+   MÊME taille physique en portrait et en paysage, seuls les écarts changent. Les
+   amas se collent aux coins bas gauche/droite ; en paysage la largeur écarte
+   juste le vide central (le jeu reste visible). */
 #pad{position:fixed;inset:0;z-index:15;display:none;pointer-events:none;touch-action:none;-webkit-user-select:none;user-select:none}
 #pad.show{display:block}
 #pad .ctl{position:absolute;pointer-events:auto;-webkit-tap-highlight-color:transparent;touch-action:none}
-#pad .btn{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(200,190,255,.22);background:rgba(22,20,32,.44);color:#e6e0f6;font:600 4.4vw/1 ui-monospace,Menlo,monospace;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);transition:background .05s,transform .05s}
+#pad .btn{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(200,190,255,.22);background:rgba(22,20,32,.44);color:#e6e0f6;font:600 4.4vmin/1 ui-monospace,Menlo,monospace;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);transition:background .05s,transform .05s}
 #pad .btn.on{background:rgba(127,107,216,.72);border-color:rgba(190,172,255,.85);transform:scale(.94)}
-/* épaules */
-#pad #shl{left:4vw;bottom:58vw;display:flex;gap:2.4vw}
-#pad #shr{right:4vw;bottom:58vw;display:flex;gap:2.4vw}
-#pad .sh{width:16vw;height:9.5vw;border-radius:12px;font-size:3.4vw}
+/* épaules (au-dessus de chaque amas) */
+#pad #shl{left:5vmin;bottom:52vmin;display:flex;gap:2.4vmin}
+#pad #shr{right:5vmin;bottom:52vmin;display:flex;gap:2.4vmin}
+#pad .sh{width:16vmin;height:9.5vmin;border-radius:12px;font-size:3.4vmin}
 /* d-pad / stick gauche */
-#pad #dz{position:absolute;left:5vw;bottom:15vw;width:38vw;height:38vw;border-radius:50%;background:rgba(18,16,28,.34);border:1px solid rgba(200,190,255,.16);pointer-events:auto;touch-action:none}
-#pad #dz.stick{border-color:rgba(120,220,180,.4)}
-#pad #dz .arw{position:absolute;color:#9a93b8;font-size:4vw;pointer-events:none}
+#pad #dz{position:absolute;left:5vmin;bottom:14vmin;width:36vmin;height:36vmin;border-radius:50%;background:rgba(18,16,28,.34);border:1px solid rgba(200,190,255,.16);pointer-events:auto;touch-action:none}
+#pad #dz.stick{border-color:rgba(120,220,180,.45)}
+#pad #dz .arw{position:absolute;color:#9a93b8;font-size:4vmin;pointer-events:none}
 #pad #dz .arw.aU{left:50%;top:5%;transform:translateX(-50%)} #pad #dz .arw.aD{left:50%;bottom:5%;transform:translateX(-50%)}
 #pad #dz .arw.aL{left:5%;top:50%;transform:translateY(-50%)} #pad #dz .arw.aR{right:5%;top:50%;transform:translateY(-50%)}
 #pad #dz .arw.on{color:#c9bcff}
-#pad #dz .nub{position:absolute;left:50%;top:50%;width:15vw;height:15vw;margin:-7.5vw 0 0 -7.5vw;border-radius:50%;background:rgba(127,107,216,.5);border:1px solid rgba(200,190,255,.6);pointer-events:none;transition:transform .04s}
+#pad #dz .nub{position:absolute;left:50%;top:50%;width:15vmin;height:15vmin;margin:-7.5vmin 0 0 -7.5vmin;border-radius:50%;background:rgba(127,107,216,.5);border:1px solid rgba(200,190,255,.6);pointer-events:none;transition:transform .04s}
 #pad #dz.stick .nub{background:rgba(80,200,150,.5);border-color:rgba(150,240,200,.7)}
 /* boutons de face (losange) */
-#pad #face{right:4vw;bottom:15vw;width:40vw;height:40vw}
-#pad #face .btn{position:absolute;width:14vw;height:14vw;font-size:6vw;font-weight:700}
-#pad #face .fT{left:50%;top:0;margin-left:-7vw;color:#8fe6b0}       /* △ triangle */
-#pad #face .fL{left:0;top:50%;margin-top:-7vw;color:#f2a6d6}         /* □ carré */
-#pad #face .fR{right:0;top:50%;margin-top:-7vw;color:#f28a8a}        /* ○ rond */
-#pad #face .fB{left:50%;bottom:0;margin-left:-7vw;color:#8ab6f2}     /* ✕ croix */
-/* système */
-#pad #sys{left:50%;bottom:4.5vw;margin-left:-31vw;width:62vw;display:flex;gap:2.4vw;justify-content:center;align-items:center}
-#pad #sys .btn{height:7.5vw;padding:0 3vw;border-radius:20px;font-size:3vw;font-weight:600}
-#pad #sys .sm{padding:0 2.4vw}
-/* config */
-#pad #cfg{left:50%;top:2.5vw;margin-left:-24vw;width:48vw;display:flex;gap:2.4vw;justify-content:center}
-#pad #cfg .btn{height:7vw;padding:0 2.6vw;border-radius:16px;font-size:2.9vw;background:rgba(22,20,32,.5)}
-#pad-fab{position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:30;font:inherit;font-size:.66rem;padding:4px 10px;border-radius:10px;border:1px solid rgba(200,190,255,.28);background:rgba(0,0,0,.5);color:#b7a9ff;cursor:pointer;display:none}
+#pad #face{right:5vmin;bottom:14vmin;width:40vmin;height:40vmin}
+#pad #face .btn{position:absolute;width:14vmin;height:14vmin;font-size:6vmin;font-weight:700}
+#pad #face .fT{left:50%;top:0;margin-left:-7vmin;color:#8fe6b0}       /* △ triangle */
+#pad #face .fL{left:0;top:50%;margin-top:-7vmin;color:#f2a6d6}         /* □ carré */
+#pad #face .fR{right:0;top:50%;margin-top:-7vmin;color:#f28a8a}        /* ○ rond */
+#pad #face .fB{left:50%;bottom:0;margin-left:-7vmin;color:#8ab6f2}     /* ✕ croix */
+/* système (centré bas) */
+#pad #sys{left:50%;bottom:max(3.5vmin,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:2.4vmin;justify-content:center;align-items:center}
+#pad #sys .btn{height:8vmin;padding:0 3.4vmin;border-radius:20px;font-size:3.2vmin;font-weight:600}
+#pad #sys .sm{padding:0 2.6vmin}
+/* config (centré haut) */
+#pad #cfg{left:50%;top:max(2.5vmin,env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:2.4vmin;justify-content:center}
+#pad #cfg .btn{height:8vmin;padding:0 3vmin;border-radius:16px;font-size:3.2vmin;font-weight:600;background:rgba(22,20,32,.6)}
+#pad #cfg #mode-btn{border-color:rgba(190,172,255,.6);color:#cbbcff}
+#pad-fab{position:fixed;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;font:inherit;font-size:.66rem;padding:4px 10px;border-radius:10px;border:1px solid rgba(200,190,255,.28);background:rgba(0,0,0,.5);color:#b7a9ff;cursor:pointer;display:none}
 #pad-fab.show{display:block}
-@media(min-aspect-ratio:1/1){ /* paysage : rapprocher des bords, réduire */
-  #pad #dz{width:26vh;height:26vh;left:3vw;bottom:8vh} #pad #face{width:28vh;height:28vh;right:3vw;bottom:8vh}
-  #pad #shl{bottom:36vh} #pad #shr{bottom:36vh}
-}
 </style></head><body>
 <div id="stage"><canvas id="outputCanvas" width="640" height="480"></canvas></div>
 <div id="fps"></div>
@@ -153,11 +154,19 @@ input[type=file]{display:none}
 
   <h2>Carte mémoire</h2>
   <div class="btns">
-    <button class="act" id="mc-export">Exporter (.tar)</button>
-    <label class="filebtn act" for="mc-import">Importer</label>
-    <input type="file" id="mc-import" accept=".tar" hidden>
+    <button class="act" id="mc-export">Exporter (.ps2)</button>
+    <label class="filebtn act" for="mc-import">Importer (.ps2)</label>
+    <input type="file" id="mc-import" accept=".ps2,.vmc,.mcd,.bin" hidden>
   </div>
-  <div class="note">Sauvegarde/restaure la carte mémoire de cette appli. Après un import, relance le jeu. Expérimental (format interne à Play!).</div>
+  <div class="note">Exporte une <b>image de carte mémoire PS2 standard</b> (8 Mio, compatible PCSX2 / vraie PS2 / mymc). Après un import, <b>relance le jeu</b>. Moteur : <a href="https://github.com/bucanero/ps2vmc-tool" target="_blank" rel="noopener">ps2vmc-tool</a> (GPLv3).<br>La carte est <b>persistée automatiquement</b> (IndexedDB) et restaurée au lancement d'un jeu.</div>
+
+  <h2>Sauvegarde complète</h2>
+  <div class="btns">
+    <button class="act" id="backup-export">Tout exporter (.zip)</button>
+    <label class="filebtn act" for="backup-import">Tout importer</label>
+    <input type="file" id="backup-import" accept=".zip" hidden>
+  </div>
+  <div class="note">Un seul fichier <b>.zip</b> avec toutes les sauvegardes rapides + la carte mémoire — pour tout sauvegarder ou migrer vers un autre appareil.</div>
 
   <h2>Réglages — au démarrage</h2>
   <div class="row"><span>Résolution interne</span>
@@ -251,7 +260,7 @@ window.__pad = (function(){
     dpad:  { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight' },
     stick: { up:'KeyT',    down:'KeyG',      left:'KeyF',      right:'KeyH' }
   };
-  var mode = 'dpad', active = {}, pid = null;
+  var mode = (function(){ try{ return localStorage.getItem('ps2.padmode')==='stick' ? 'stick' : 'dpad'; }catch(_){ return 'dpad'; } })(), active = {}, pid = null;
   function codes(){ return CODES[mode]; }
   function setDir(d,on){
     if(on===!!active[d]) return;
@@ -275,13 +284,15 @@ window.__pad = (function(){
   function dzEnd(e){ if(e.pointerId!==pid)return; pid=null; clearDirs(); }
   DZ.addEventListener('pointerup', dzEnd); DZ.addEventListener('pointercancel', dzEnd); DZ.addEventListener('lostpointercapture', dzEnd);
 
-  /* --- config : bascule d-pad/stick, masquer --- */
+  /* --- config : bascule D-pad / Analog (persistée), masquer --- */
   var modeBtn = document.getElementById('mode-btn');
+  function applyMode(){ DZ.classList.toggle('stick', mode==='stick'); modeBtn.textContent = (mode==='stick') ? '🕹 Analog' : '🎮 D-pad'; }
   modeBtn.addEventListener('click', function(){
     clearDirs(); mode = (mode==='dpad') ? 'stick' : 'dpad';
-    DZ.classList.toggle('stick', mode==='stick');
-    modeBtn.textContent = (mode==='dpad') ? '🎮 D-pad' : '🕹 Stick G';
+    try{ localStorage.setItem('ps2.padmode', mode); }catch(_){}
+    applyMode();
   });
+  applyMode();
   document.getElementById('hide-btn').addEventListener('click', function(){ padEl.classList.remove('show'); });
   fab.addEventListener('click', function(){ padEl.classList.toggle('show'); });
 
@@ -378,45 +389,155 @@ window.__menu = (function(){
     if(a==='save') saveSlot(n); else if(a==='load') loadSlot(n); else if(a==='export') exportSlot(n);
     else if(a==='import'){ importTarget=n; stateImport.click(); } });
 
-  /* --- Carte mémoire (dossier vfs/mc0 dans MEMFS, localisé par scan) --- */
+  /* --- Carte mémoire : conversion dossier Play! (vfs/mc0) <-> image .ps2 standard ---
+     Moteur = ps2vmc-tool (mcio) compilé en WASM (ps2mc.js/.wasm), GPLv3. Une carte PS2
+     fait 8 650 752 octets (16384 pages de 528 : 512 data + 16 ECC). mcio travaille en
+     place sur le tampon monté. */
+  const VMC_SIZE = 8650752;
   function findDir(name){ const FS=window.__PS2 && window.__PS2.FS; if(!FS) return null; const stack=['/'];
     while(stack.length){ const p=stack.pop(); let ents; try{ ents=FS.readdir(p); }catch(_){ continue; }
       for(const e of ents){ if(e==='.'||e==='..') continue; const cp=(p==='/'?'':p)+'/'+e; let st; try{ st=FS.stat(cp); }catch(_){ continue; }
         if(FS.isDir(st.mode)){ if(e===name) return cp; stack.push(cp); } } }
     return null; }
-  function walkFiles(FS, dir, baseLen, out){ for(const e of FS.readdir(dir)){ if(e==='.'||e==='..') continue;
-    const p=dir+'/'+e; const st=FS.stat(p); if(FS.isDir(st.mode)) walkFiles(FS,p,baseLen,out);
-    else out.push({name:p.slice(baseLen), data:new Uint8Array(FS.readFile(p))}); } }
-  function mkdirp(FS, path){ const parts=path.split('/'); let cur=''; for(const seg of parts){ if(!seg) continue; cur=cur+'/'+seg; try{ FS.mkdir(cur); }catch(_){} } }
-  const enc=new TextEncoder(), dec=new TextDecoder();
-  function octal(n,len){ return n.toString(8).padStart(len-1,'0')+'\0'; }
-  function makeTar(files){ const chunks=[];
-    for(const f of files){ const h=new Uint8Array(512); h.set(enc.encode(f.name).slice(0,100),0);
-      h.set(enc.encode('0000644\0'),100); h.set(enc.encode('0000000\0'),108); h.set(enc.encode('0000000\0'),116);
-      h.set(enc.encode(octal(f.data.length,12)),124); h.set(enc.encode(octal(Math.floor(Date.now()/1000),12)),136);
-      for(let i=148;i<156;i++) h[i]=32; h[156]=0x30; h.set(enc.encode('ustar\0'),257); h.set(enc.encode('00'),263);
-      let sum=0; for(let i=0;i<512;i++) sum+=h[i]; h.set(enc.encode(octal(sum,7)),148); h[155]=32;
-      chunks.push(h); chunks.push(f.data); const pad=(512-(f.data.length%512))%512; if(pad) chunks.push(new Uint8Array(pad)); }
-    chunks.push(new Uint8Array(1024)); return new Blob(chunks,{type:'application/x-tar'}); }
-  function readTar(buf){ const u=new Uint8Array(buf); const out=[]; let off=0;
-    while(off+512<=u.length){ const name=dec.decode(u.slice(off,off+100)).replace(/\0[\s\S]*$/,''); if(!name) break;
-      const size=parseInt(dec.decode(u.slice(off+124,off+136)).replace(/\0[\s\S]*$/,'').trim(),8)||0;
-      out.push({name, data:u.slice(off+512, off+512+size)}); off += 512 + Math.ceil(size/512)*512; }
-    return out; }
 
-  document.getElementById('mc-export').addEventListener('click', ()=>{ const M=window.__PS2; if(!M){ toast('Runtime pas prêt'); return; }
+  // chargement paresseux du module WASM ps2mc (non threadé, ~50 Ko)
+  let mcMod = null, mcLoading = null;
+  function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('load '+src)); document.head.appendChild(s); }); }
+  async function ensureMc(){ if(mcMod) return mcMod; if(mcLoading) return mcLoading;
+    mcLoading = (async ()=>{ if(typeof PS2MC==='undefined') await loadScript('ps2mc.js'); mcMod = await PS2MC(); return mcMod; })();
+    return mcLoading; }
+  function withStr(mc, s, fn){ const n=mc.lengthBytesUTF8(s)+1, p=mc._malloc(n); mc.stringToUTF8(s,p,n); try{ return fn(p); } finally { mc._free(p); } }
+  function mcList(mc, dir){ const lb=mc._malloc(16384);
+    const n=withStr(mc,dir,p=>mc.ccall('mcb_list','number',['number','number','number'],[p,lb,16384]));
+    const s=(n>=0)?mc.UTF8ToString(lb):''; mc._free(lb);
+    return { n, entries:(s?s.trim().split('\n'):[]).filter(Boolean).map(l=>{ const [name,size,isdir]=l.split('\t'); return {name,size:parseInt(size,10)||0,isdir:isdir==='1'}; }) }; }
+
+  // Export : dossier Play! -> image .ps2 (8 Mio)
+  document.getElementById('mc-export').addEventListener('click', async ()=>{ const M=window.__PS2; if(!M){ toast('Runtime pas prêt'); return; }
     const dir=findDir('mc0'); if(!dir){ toast('Carte mémoire introuvable (lance un jeu d’abord)'); return; }
-    const out=[]; try{ walkFiles(M.FS, dir, dir.length+1, out); }catch(e){ U.fail('Lecture carte échouée : '+e); return; }
-    if(!out.length){ toast('Carte mémoire vide'); return; }
-    dl(makeTar(out), 'carte-memoire-ps2.tar'); toast('Export carte mémoire ('+out.length+' fichiers)'); });
+    try {
+      const mc=await ensureMc();
+      const card=mc._malloc(VMC_SIZE);
+      const r=mc.ccall('mcb_format','number',['number','number'],[card,VMC_SIZE]);
+      if(r!==0){ toast('Formatage .ps2 échoué ('+r+')'); mc._free(card); return; }
+      let nf=0;
+      for(const save of M.FS.readdir(dir)){ if(save==='.'||save==='..') continue;
+        const sp=dir+'/'+save; let st; try{ st=M.FS.stat(sp); }catch(_){ continue; } if(!M.FS.isDir(st.mode)) continue;
+        withStr(mc,'/'+save,p=>mc.ccall('mcb_mkdir','number',['number'],[p]));
+        for(const fn of M.FS.readdir(sp)){ if(fn==='.'||fn==='..') continue;
+          const fp=sp+'/'+fn; const fst=M.FS.stat(fp); if(M.FS.isDir(fst.mode)) continue;   // les saves PS2 sont plates
+          const data=new Uint8Array(M.FS.readFile(fp));
+          const p=mc._malloc(data.length||1); mc.HEAPU8.set(data,p);
+          const put=withStr(mc,'/'+save+'/'+fn,pp=>mc.ccall('mcb_write','number',['number','number','number'],[pp,p,data.length]));
+          mc._free(p);
+          if(put<0) U.log('mc export: '+save+'/'+fn+' -> '+put); else nf++;
+        }
+      }
+      mc.ccall('mcb_flush','number',[],[]);
+      const out=mc.HEAPU8.slice(card, card+VMC_SIZE); mc._free(card);
+      if(!nf){ toast('Carte mémoire vide — rien à exporter'); return; }
+      dl(new Blob([out],{type:'application/octet-stream'}), (window.__PS2_game||'memory-card').replace(/\.[^.]*$/,'')+'.ps2');
+      toast('Export .ps2 : '+nf+' fichiers (8 Mio)');
+    } catch(e){ U.fail('Export .ps2 échoué : '+(e&&(e.message||e))); }
+  });
 
+  // Import : image .ps2 -> dossier Play!
   document.getElementById('mc-import').addEventListener('change', async (e)=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
     const M=window.__PS2; if(!M){ toast('Runtime pas prêt'); return; }
     const dir=findDir('mc0'); if(!dir){ toast('Lance un jeu d’abord (carte mémoire absente)'); return; }
-    const entries=readTar(await f.arrayBuffer()); let k=0;
-    for(const it of entries){ const full=dir+'/'+it.name; const parent=full.slice(0,full.lastIndexOf('/'));
-      try{ mkdirp(M.FS, parent); M.FS.writeFile(full, it.data); k++; }catch(err){ U.log('mc import: '+it.name+' → '+err); } }
-    toast('Importé '+k+' fichiers dans la carte mémoire — relance le jeu.'); });
+    try {
+      const mc=await ensureMc();
+      const buf=new Uint8Array(await f.arrayBuffer());
+      const card=mc._malloc(buf.length); mc.HEAPU8.set(buf,card);
+      const r=mc.ccall('mcb_mount','number',['number','number'],[card,buf.length]);
+      if(r!==0){ toast('.ps2 illisible / non formaté ('+r+')'); mc._free(card); return; }
+      const root=mcList(mc,'/'); let nf=0;
+      for(const d of root.entries){ if(!d.isdir) continue;
+        try{ M.FS.mkdir(dir+'/'+d.name); }catch(_){}
+        for(const it of mcList(mc,'/'+d.name).entries){ if(it.isdir) continue;
+          const ob=mc._malloc(it.size||1);
+          const got=withStr(mc,'/'+d.name+'/'+it.name,p=>mc.ccall('mcb_read','number',['number','number','number'],[p,ob,it.size]));
+          if(got>=0){ const data=mc.HEAPU8.slice(ob,ob+got); try{ M.FS.writeFile(dir+'/'+d.name+'/'+it.name, data); nf++; }catch(err){ U.log('mc import write '+it.name+' -> '+err); } }
+          mc._free(ob);
+        }
+      }
+      mc._free(card);
+      await snapshotMc();                    // l'import alimente aussi la persistance
+      toast('Importé '+nf+' fichiers depuis .ps2 — relance le jeu.');
+    } catch(e){ U.fail('Import .ps2 échoué : '+(e&&(e.message||e))); }
+  });
+
+  /* --- Persistance de la carte mémoire ---------------------------------------
+     Play.js n'embarque pas IDBFS : on persiste nous-mêmes. Le dossier mc0 vit dans
+     le MEMFS (perdu au reload). On le recopie dans IndexedDB (snapshot) et on le
+     réinjecte AVANT le boot du jeu (restore). Chemin déterministe si le dossier
+     n'existe pas encore. */
+  const MC_BASE = '/home/web_user/.local/share/Play Data Files/vfs/mc0';
+  function mcDir(){ return findDir('mc0') || MC_BASE; }
+  async function snapshotMc(){ const M=window.__PS2; if(!M) return 0; const dir=findDir('mc0'); if(!dir) return 0;
+    const files={}; (function walk(d, rel){ let ents; try{ ents=M.FS.readdir(d); }catch(_){ return; }
+      for(const e of ents){ if(e==='.'||e==='..') continue; const p=d+'/'+e; let st; try{ st=M.FS.stat(p); }catch(_){ continue; }
+        const r=rel?rel+'/'+e:e; if(M.FS.isDir(st.mode)) walk(p,r); else { try{ files[r]=new Uint8Array(M.FS.readFile(p)); }catch(_){} } } })(dir,'');
+    await idbPut('mc0.card', {ts:Date.now(), files}); return Object.keys(files).length; }
+  async function restoreMc(){ const M=window.__PS2; if(!M) return 0; const rec=await idbGet('mc0.card'); if(!rec||!rec.files) return 0;
+    const dir=mcDir(); try{ M.FS.mkdirTree(dir); }catch(_){}
+    let n=0; for(const rel in rec.files){ const full=dir+'/'+rel; const parent=full.slice(0,full.lastIndexOf('/'));
+      try{ M.FS.mkdirTree(parent); M.FS.writeFile(full, rec.files[rel]); n++; }catch(e){ U.log('mc restore '+rel+' -> '+e); } }
+    return n; }
+  let _mcT=null;
+  function startMcPersist(){ if(_mcT) clearInterval(_mcT); _mcT=setInterval(()=>{ snapshotMc(); }, 25000); }
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) snapshotMc(); });
+  window.addEventListener('pagehide', ()=>{ snapshotMc(); });
+
+  /* --- Sauvegarde complète : ZIP (store + CRC32) de tous les états + la carte --- */
+  const CRCT=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; })();
+  function crc32(u8){ let c=0xFFFFFFFF; for(let i=0;i<u8.length;i++) c=CRCT[(c^u8[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+  function makeZip(entries){ // entries: [{name, data:Uint8Array}]
+    const enc=new TextEncoder(), locals=[], central=[]; let off=0;
+    const u16=n=>[n&255,(n>>8)&255], u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255];
+    for(const e of entries){ const name=enc.encode(e.name), crc=crc32(e.data), sz=e.data.length;
+      const lh=[].concat([0x50,0x4b,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(sz),u32(sz),u16(name.length),u16(0));
+      const lhb=new Uint8Array(lh.length+name.length); lhb.set(lh,0); lhb.set(name,lh.length);
+      locals.push(lhb, e.data);
+      const ch=[].concat([0x50,0x4b,0x01,0x02],u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(sz),u32(sz),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off));
+      const chb=new Uint8Array(ch.length+name.length); chb.set(ch,0); chb.set(name,ch.length); central.push(chb);
+      off += lhb.length + sz; }
+    let coff=off, clen=0; for(const c of central) clen+=c.length;
+    const eocd=new Uint8Array([].concat([0x50,0x4b,0x05,0x06],u16(0),u16(0),u16(entries.length),u16(entries.length),u32(clen),u32(coff),u16(0)));
+    return new Blob([...locals, ...central, eocd], {type:'application/zip'}); }
+  function readZip(buf){ const u=new Uint8Array(buf), dv=new DataView(u.buffer), dec=new TextDecoder(), out={};
+    // scan local file headers (store only)
+    let i=0; while(i+4<=u.length && dv.getUint32(i,true)===0x04034b50){
+      const nlen=dv.getUint16(i+26,true), elen=dv.getUint16(i+28,true), sz=dv.getUint32(i+22,true);
+      const name=dec.decode(u.slice(i+30,i+30+nlen)); const data=u.slice(i+30+nlen+elen, i+30+nlen+elen+sz);
+      out[name]=data; i=i+30+nlen+elen+sz; }
+    return out; }
+
+  async function exportAll(){ try{
+    const entries=[]; const manifest={app:'lecteur-ps2', ts:Date.now(), slots:[], memcard:0};
+    for(const n of [1,2,3]){ const rec=await idbGet('state.slot'+n); if(rec&&rec.data){ entries.push({name:'states/slot'+n+'.state', data:rec.data}); manifest.slots.push({slot:n, name:rec.name||'', ts:rec.ts}); } }
+    // carte mémoire : depuis le live si dispo, sinon depuis la persistance
+    let card=await idbGet('mc0.card'); if(window.__PS2 && findDir('mc0')){ await snapshotMc(); card=await idbGet('mc0.card'); }
+    if(card&&card.files){ for(const rel in card.files){ entries.push({name:'memcard/'+rel, data:card.files[rel]}); } manifest.memcard=Object.keys(card.files).length; }
+    entries.push({name:'manifest.json', data:new TextEncoder().encode(JSON.stringify(manifest,null,1))});
+    if(entries.length<=1){ toast('Rien à sauvegarder pour l’instant'); return; }
+    dl(makeZip(entries), 'lecteur-ps2-sauvegardes.zip'); toast('Export complet : '+manifest.slots.length+' état(s) + carte ('+manifest.memcard+' fich.)');
+  } catch(e){ U.fail('Export complet échoué : '+(e&&(e.message||e))); } }
+
+  async function importAll(file){ try{
+    const files=readZip(await file.arrayBuffer()); let slots=0; const mcFiles={};
+    for(const path in files){
+      if(/^states\/slot([123])\.state$/.test(path)){ const n=path.match(/slot([123])/)[1]; await idbPut('state.slot'+n, {ts:Date.now(), name:'(importé)', data:files[path]}); slots++; }
+      else if(path.indexOf('memcard/')===0){ mcFiles[path.slice(8)]=files[path]; }
+    }
+    if(Object.keys(mcFiles).length){ await idbPut('mc0.card', {ts:Date.now(), files:mcFiles});
+      if(window.__PS2) await restoreMc(); }
+    refreshAllSlots();
+    toast('Import complet : '+slots+' état(s) + carte ('+Object.keys(mcFiles).length+' fich.) — relance le jeu pour la carte.');
+  } catch(e){ U.fail('Import complet échoué : '+(e&&(e.message||e))); } }
+
+  document.getElementById('backup-export').addEventListener('click', exportAll);
+  document.getElementById('backup-import').addEventListener('change', (e)=>{ const f=e.target.files[0]; e.target.value=''; if(f) importAll(f); });
 
   /* --- Réglages (segments) --- */
   function initSeg(id, key, def){ const seg=document.getElementById(id); const cur=localStorage.getItem(key)||def;
@@ -442,7 +563,12 @@ window.__menu = (function(){
   document.getElementById('ver-note').textContent = 'Play! (BSD) · build instrumenté · ' + location.hostname;
   refreshAllSlots();
 
-  return { onBoot: function(name){ gameEl.textContent = name || 'Jeu chargé'; } };
+  return {
+    onBoot: function(name){ gameEl.textContent = name || 'Jeu chargé'; },
+    restoreMc: restoreMc,
+    snapshotMc: snapshotMc,
+    startMcPersist: startMcPersist
+  };
 })();
 </script>
 <script type="module">
@@ -494,23 +620,39 @@ if(!U.isolated()){
     U.log('Runtime prêt — initVm()…');
     try{ Module.FS.mkdir('/work'); }catch(_){}
     Module.discImageDevice = new DiscImageDevice(Module);   // requis AVANT initVm/boot
-    // Réglages de démarrage (persistés dans localStorage) — DOIVENT être posés avant initVm.
-    try {
-      const rf = parseInt(localStorage.getItem('ps2.resFactor') || '1', 10);
-      Module.setResolutionFactor && Module.setResolutionFactor(rf >= 2 ? 2 : 1);
-      const lim = localStorage.getItem('ps2.limit60');
-      Module.setFrameLimiter && Module.setFrameLimiter(lim !== '0');
-      U.log('Réglages : résolution ' + (rf>=2?'2×':'1×') + ', limiteur 60fps ' + (lim!=='0'?'on':'off'));
-    } catch(_){}
-    Module.ccall('initVm', '', [], []);        // crée VM + contexte WebGL2 + pad + son
-    U.log('VM initialisée. Charge un jeu.');
-    pick.textContent = 'Charger un jeu';
+    // initVm (= création du contexte WebGL2 + son) est DIFFÉRÉ au 1er appui : iOS Safari
+    // crée un contexte WebGL bien plus fiablement DANS un geste utilisateur (hors geste,
+    // il renvoie un contexte invalide → erreur clearColor/clearDepth).
+    U.log('Runtime prêt. Touche « Démarrer ».');
+    pick.textContent = 'Démarrer';
     pick.disabled = false;
   } catch (e) {
     U.fail('Échec init Play! : ' + (e && (e.message || e)));
   }
 
-  pick.addEventListener('click', () => document.getElementById('file-disc').click());
+  let vmReady = false;
+  function ensureVm(){
+    if(vmReady) return true;
+    if(!Module) return false;
+    try {
+      // Réglages de démarrage (persistés) — DOIVENT être posés avant initVm.
+      const rf = parseInt(localStorage.getItem('ps2.resFactor') || '1', 10);
+      Module.setResolutionFactor && Module.setResolutionFactor(rf >= 2 ? 2 : 1);
+      const lim = localStorage.getItem('ps2.limit60');
+      Module.setFrameLimiter && Module.setFrameLimiter(lim !== '0');
+      U.log('Réglages : résolution ' + (rf>=2?'2×':'1×') + ', limiteur 60fps ' + (lim!=='0'?'on':'off'));
+      U.log('initVm() (dans le geste)…');
+      Module.ccall('initVm', '', [], []);      // crée VM + contexte WebGL2 + pad + son
+      vmReady = true;
+      U.log('VM initialisée.');
+      return true;
+    } catch (e) {
+      U.fail('Échec init Play! : ' + (e && (e.message || e)));
+      return false;
+    }
+  }
+
+  pick.addEventListener('click', () => { if(!ensureVm()) return; document.getElementById('file-disc').click(); });
   document.getElementById('file-disc').addEventListener('change', async (e) => {
     const f = e.target.files[0]; e.target.value = ''; if(!f || !Module) return;
     if(booted){ U.log('Un jeu est déjà lancé — recharge la page pour en changer.'); return; }
@@ -519,6 +661,8 @@ if(!U.isolated()){
       loader.classList.add('hidden');
       fpsEl.classList.add('show');
       booted = true;
+      // restaure la carte mémoire persistée AVANT le boot (le jeu la lit au démarrage)
+      try{ if(window.__menu && window.__menu.restoreMc){ const nr=await window.__menu.restoreMc(); if(nr) U.log('Carte mémoire restaurée ('+nr+' fichiers).'); } }catch(_){}
       if(/\.elf$/i.test(f.name)){
         const buf = new Uint8Array(await f.arrayBuffer());
         try{ Module.FS.unlink(f.name); }catch(_){}
@@ -535,6 +679,7 @@ if(!U.isolated()){
       startFps();
       try{ window.__pad && window.__pad.show(); }catch(_){}
       try{ window.__menu && window.__menu.onBoot(f.name); }catch(_){}
+      try{ window.__menu && window.__menu.startMcPersist && window.__menu.startMcPersist(); }catch(_){}
       try{ canvas.focus(); }catch(_){}
     } catch (err) {
       U.fail('Boot échoué : ' + (err && (err.message || err)));
