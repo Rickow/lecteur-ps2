@@ -2,14 +2,6 @@ MIT License
 
 Copyright (c) 2026 Rickow
 
-This license covers the original wrapper code of this repository (the `lecteur-ps2.html`
-interface, `coi-sw.js`, `_headers`, `cloudflare-worker.js`, and the `deploy/` Worker).
-
-The bundled PlayStation 2 emulator **Play!** (`Play.js`, `Play.wasm`) is the work of
-Jean-Philip Desjardins and is distributed under the **BSD-2-Clause** license; its notice is
-kept in `PLAY-LICENSE.txt` and applies to those files. See `CREDITS.md` for all third-party
-components and their licenses.
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -27,3 +19,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
