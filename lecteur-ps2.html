@@ -173,7 +173,9 @@ input[type=file]{display:none}
     <div class="seg" id="seg-res"><button data-v="1">1× natif</button><button data-v="2">2× net</button></div></div>
   <div class="row"><span>Limiteur 60 fps</span>
     <div class="seg" id="seg-lim"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
-  <div class="note">2× = plus net mais plus lourd (le natif est le plus léger, pas de sous-natif possible sur ce moteur). Limiteur Off = pas de plafond 60 fps. Appliqué au prochain chargement — <b>recharge la page</b> après changement.</div>
+  <div class="row"><span>Anti-tremblement <span style="opacity:.6">(exp.)</span></span>
+    <div class="seg" id="seg-deint"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+  <div class="note">2× = plus net mais plus lourd (le natif est le plus léger, pas de sous-natif possible sur ce moteur). Limiteur Off = pas de plafond 60 fps. Résolution/limiteur : <b>recharge la page</b> après changement. Anti-tremblement : fige le champ d'entrelacement (supprime le bob vertical) — appliqué <b>en direct</b> ; expérimental, peut gêner de rares jeux.</div>
 
   <h2>Affichage</h2>
   <div class="btns">
@@ -546,6 +548,13 @@ window.__menu = (function(){
         seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); toast('Réglage enregistré — recharge la page pour appliquer.'); }); }); }
   initSeg('seg-res','ps2.resFactor','1');
   initSeg('seg-lim','ps2.limit60','1');
+  // anti-tremblement : appliqué EN DIRECT (pas besoin de recharger)
+  (function(){ const seg=document.getElementById('seg-deint'); const cur=localStorage.getItem('ps2.deint')||'0';
+    seg.querySelectorAll('button').forEach(b=>{ b.classList.toggle('on', b.dataset.v===cur);
+      b.addEventListener('click', ()=>{ const on=b.dataset.v==='1'; localStorage.setItem('ps2.deint', b.dataset.v);
+        seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+        try{ window.__PS2 && window.__PS2.setDeinterlace && window.__PS2.setDeinterlace(on); }catch(_){}
+        toast('Anti-tremblement ' + (on?'activé':'désactivé') + (window.__PS2_game?'':' (effet au lancement)')); }); }); })();
 
   /* --- Affichage / maintenance --- */
   document.getElementById('toggle-pad').addEventListener('click', ()=>{ document.getElementById('pad').classList.toggle('show'); });
@@ -644,6 +653,7 @@ if(!U.isolated()){
       U.log('initVm() (dans le geste)…');
       Module.ccall('initVm', '', [], []);      // crée VM + contexte WebGL2 + pad + son
       vmReady = true;
+      try{ if(localStorage.getItem('ps2.deint') === '1') Module.setDeinterlace && Module.setDeinterlace(true); }catch(_){}
       U.log('VM initialisée.');
       return true;
     } catch (e) {

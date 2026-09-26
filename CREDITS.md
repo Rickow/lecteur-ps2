@@ -44,12 +44,13 @@ and our **original wrapper code** is also available under **MIT** ([`LICENSE.MIT
 
 ## Modifications to Play!
 
-A small patch to the JS frontend (`Source/ui_js/Main.cpp`), provided at
-[`patches/play-ui_js-instrumentation.patch`](patches/play-ui_js-instrumentation.patch),
-against upstream commit
+A small patch to the JS frontend (`Source/ui_js/Main.cpp`) and the GS handler
+(`Source/gs/GSHandler.{cpp,h}`), provided at
+[`patches/play-lecteur-ps2.patch`](patches/play-lecteur-ps2.patch), against upstream commit
 [`83700b2`](https://github.com/jpd002/Play-/commit/83700b2c31e593bc94e845b4b31b797be84dda59):
-it exposes `saveState`/`loadState`, `setResolutionFactor`, `setFrameLimiter`, and per-frame
-statistics (`getEeUsage`/`getIopUsage`/`getDrawCalls`). Play! is BSD-2-Clause; its license and
+it exposes `saveState`/`loadState`, `setResolutionFactor`, `setFrameLimiter`, `setDeinterlace`
+(field stabilization, anti-shimmer), and per-frame statistics
+(`getEeUsage`/`getIopUsage`/`getDrawCalls`). Play! is BSD-2-Clause; its license and
 copyright notice are kept in [`PLAY-LICENSE.txt`](PLAY-LICENSE.txt).
 
 ## ⚠️ What is NOT provided (and never will be)

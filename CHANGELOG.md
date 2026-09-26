@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1 — 2026-09-26
+
+- **Anti-shimmer (experimental)**: a menu toggle that stabilizes the interlace field
+  (`setDeinterlace`, patched into `GSHandler`), removing the 1-line vertical bob of
+  interlaced games. Off by default, applied live.
+
 ## v0.3.0 — 2026-09-17
 
 Controls, memory-card `.ps2`, persistence and full backup.

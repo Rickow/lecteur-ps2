@@ -1,5 +1,46 @@
+diff --git a/Source/gs/GSHandler.cpp b/Source/gs/GSHandler.cpp
+index 57e58ba..3bf53b4 100644
+--- a/Source/gs/GSHandler.cpp
++++ b/Source/gs/GSHandler.cpp
+@@ -414,8 +414,12 @@ void CGSHandler::ResetVBlank()
+ {
+ 	std::lock_guard registerMutexLock(m_registerMutex);
+ 
+-	//Alternate current field
+-	m_nCSR ^= CSR_FIELD;
++	//Alternate current field. Skipping this ("field stabilization") keeps a constant field
++	//so interlaced games stop bobbing the image vertically by one line (anti-tremblement).
++	if(!m_stabilizeField)
++	{
++		m_nCSR ^= CSR_FIELD;
++	}
+ }
+ 
+ void CGSHandler::NotifyEvent(uint32 eventBit)
+diff --git a/Source/gs/GSHandler.h b/Source/gs/GSHandler.h
+index 66bfe59..236380b 100644
+--- a/Source/gs/GSHandler.h
++++ b/Source/gs/GSHandler.h
+@@ -892,6 +892,9 @@ public:
+ 	uint32 GetCrtHSyncFrequency() const;
+ 	bool GetCrtIsInterlaced() const;
+ 	bool GetCrtIsFrameMode() const;
++
++	//Anti-tremblement : quand actif, le champ n'alterne plus (voir ResetVBlank).
++	void SetFieldStabilization(bool enabled) { m_stabilizeField = enabled; }
+ 	DISPLAY_RECT GetDisplayRect(uint64) const;
+ 	DISPLAY_INFO GetCurrentDisplayInfo();
+ 
+@@ -1094,6 +1097,7 @@ protected:
+ 	DELAYED_REGISTER m_nDISPFB2;  //0x12000090
+ 	DELAYED_REGISTER m_nDISPLAY2; //0x120000A0
+ 	uint64 m_nCSR;                //0x12001000
++	bool m_stabilizeField = false; //anti-tremblement : fige le champ (ResetVBlank)
+ 	uint64 m_nIMR;                //0x12001010
+ 	uint64 m_nBUSDIR;             //0x12001040
+ 	uint64 m_nSIGLBLID;           //0x12001080
 diff --git a/Source/ui_js/Main.cpp b/Source/ui_js/Main.cpp
-index 999e24c..1e75cef 100644
+index 999e24c..2bca320 100644
 --- a/Source/ui_js/Main.cpp
 +++ b/Source/ui_js/Main.cpp
 @@ -7,9 +7,13 @@
@@ -25,7 +66,7 @@ index 999e24c..1e75cef 100644
  
  	EMSCRIPTEN_RESULT result = EMSCRIPTEN_RESULT_SUCCESS;
  
-@@ -134,11 +140,64 @@ int getFrames()
+@@ -134,11 +140,74 @@ int getFrames()
  	return CStatsManager::GetInstance().GetFrames();
  }
  
@@ -87,10 +128,20 @@ index 999e24c..1e75cef 100644
 +	CAppConfig::GetInstance().SetPreferenceBoolean(PREF_PS2_LIMIT_FRAMERATE, enabled);
 +}
 +
++//Anti-tremblement (expérimental) : fige le champ d'entrelacement pour supprimer le
++//bob vertical d'1 ligne des jeux entrelacés. Réglable à chaud (après initVm).
++void setDeinterlace(bool enabled)
++{
++	if(g_virtualMachine && g_virtualMachine->GetGSHandler())
++	{
++		g_virtualMachine->GetGSHandler()->SetFieldStabilization(enabled);
++	}
++}
++
  EMSCRIPTEN_BINDINGS(Play)
  {
  	using namespace emscripten;
-@@ -146,5 +205,12 @@ EMSCRIPTEN_BINDINGS(Play)
+@@ -146,5 +215,13 @@ EMSCRIPTEN_BINDINGS(Play)
  	function("bootElf", &bootElf);
  	function("bootDiscImage", &bootDiscImage);
  	function("getFrames", &getFrames);
@@ -102,4 +153,5 @@ index 999e24c..1e75cef 100644
 +	function("loadState", &loadState);
 +	function("setResolutionFactor", &setResolutionFactor);
 +	function("setFrameLimiter", &setFrameLimiter);
++	function("setDeinterlace", &setDeinterlace);
  }
